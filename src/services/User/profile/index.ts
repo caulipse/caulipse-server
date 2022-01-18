@@ -2,13 +2,46 @@ import { getRepository } from 'typeorm';
 import UserProfile from '../../../entity/UserProfileEntity';
 import { Request, Response } from 'express';
 
+/**
+ * @swagger
+ * paths:
+ *  /api/user/profile:
+ *    post:
+ *      summary: "유저 프로필 생성"
+ *      tags:
+ *      - "user"
+ *      description: "유저 프로필 생성을 위한 엔드포인트"
+ *      parameters:
+ *      - in: "body"
+ *        description: "유저 프로필 객체"
+ *        required: true
+ *        schema:
+ *          type: object
+ *          properties:
+ *            userId:
+ *              type: string
+ *              example: "sampleId"
+ *            userName:
+ *              type: string
+ *              example: "홍길동"
+ *            dept:
+ *              type: string
+ *              example: "경영학과"
+ *            grade:
+ *              type: number
+ *              example: 3
+ *            bio:
+ *              type: string
+ *              example: "남"
+ */
+
 export const createProfile = async (req: Request, res: Response) => {
   try {
     interface UserProfileInterface {
       userId: string;
       userName: string;
       dept: string;
-      grade: string;
+      grade?: string;
       bio: string;
       userAbout?: string;
       showDept?: boolean;
@@ -24,7 +57,7 @@ export const createProfile = async (req: Request, res: Response) => {
       userId,
       userName,
       dept,
-      grade,
+      grade = '',
       bio,
       userAbout = '',
       showGrade = true,
