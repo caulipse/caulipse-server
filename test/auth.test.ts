@@ -18,7 +18,7 @@ beforeAll(async () => {
   const email = 'example@test.com';
   const password = 'test';
 
-  saveUser({ id: randomUUID(), email, password });
+  saveUser({ id: randomUUID(), email, password, token: '' });
   const res = await request(app)
     .post('/api/user/login')
     .send({ email, password });
