@@ -16,7 +16,7 @@ import { createNoticeNoti } from '../../services/notification';
 export default {
   async findAllNotice(req: Request, res: Response) {
     try {
-      const limit = req.query.amount || 12;
+      const limit = req.query.limit || 12;
       const offset = req.query.offset || 0; // FIXME: cursor 디폴트값 설정
 
       const totalNoticeCount = await findNoticeCount();
