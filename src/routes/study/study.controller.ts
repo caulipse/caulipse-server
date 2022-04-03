@@ -159,26 +159,20 @@ const updateStudy = async (req: Request, res: Response) => {
 
   try {
     const { studyid } = req.params;
-    const {
-      title,
-      studyAbout,
-      weekday,
-      frequency,
-      location,
-      capacity,
-      categoryCode,
-    } = req.body;
-
-    if (
-      !title &&
-      !studyAbout &&
-      !weekday &&
-      !frequency &&
-      !location &&
-      !capacity &&
-      !categoryCode
-    )
-      throw new Error(BAD_REQUEST);
+    if (!Object.keys(req.body).length) throw new Error(BAD_REQUEST);
+    const allowedFields = [
+      'title',
+      'studyAbout',
+      'weekday',
+      'frequency',
+      'location',
+      'capacity',
+      'isRecruiting',
+      'categoryCode',
+    ];
+    Object.keys(req.body).forEach((key) => {
+      if (!allowedFields.includes(key)) throw new Error(BAD_REQUEST);
+    });
 
     const study = await studyService.findStudyById(studyid);
     if (!study) {

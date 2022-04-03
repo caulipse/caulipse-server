@@ -168,7 +168,16 @@ describe('PATCH /api/study/:studyid', () => {
     expect(res.status).toBe(200);
   });
 
-  it('유효하지 않은 body를 포함하거나 body를 포함하지 않은 요청을 받으면 400 응답', async () => {
+  it('유효하지 않은 body를 포함한 요청을 받으면 400 응답', async () => {
+    const res = await request(app)
+      .patch(`/api/study/${studyid}`)
+      .set('Cookie', cookies)
+      .send({ createdAt: 'abcd', title: 'asdf' });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('body를 포함하지 않은 요청을 받으면 400 응답', async () => {
     const res = await request(app)
       .patch(`/api/study/${studyid}`)
       .set('Cookie', cookies)
