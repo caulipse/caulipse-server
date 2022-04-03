@@ -104,6 +104,9 @@ export default {
         createdAt: item.CREATED_AT,
         views: item.VIEWS,
         bookmarkCount: item.BOOKMARK_COUNT,
+        isAccepted: !!item.IS_ACCEPTED,
+        membersCount: item.MEMBERS_COUNT,
+        capacity: item.CAPACITY,
       }));
       res.json(response);
     } catch (e) {

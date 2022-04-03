@@ -44,10 +44,15 @@ export const findAllIfParticipatedByUserId = async (userId: string) => {
   return await getConnection()
     .createQueryRunner()
     .query(
-      'SELECT STUDY.ID, STUDY.TITLE, STUDY.CREATED_AT, STUDY.VIEWS, STUDY.BOOKMARK_COUNT FROM STUDY \
-        JOIN STUDY_USER ON \
+      'SELECT \
+        STUDY.ID, STUDY.TITLE, STUDY.CREATED_AT, STUDY.VIEWS, \
+        STUDY.BOOKMARK_COUNT, STUDY.CAPACITY, STUDY.MEMBERS_COUNT, STUDY_USER.IS_ACCEPTED \
+      FROM STUDY \
+      JOIN \
+        STUDY_USER ON \
         STUDY_USER.STUDY_ID = STUDY.ID \
-        WHERE STUDY_USER.USER_ID = ? \
+      WHERE \
+        STUDY_USER.USER_ID = ?\
         ORDER BY STUDY.CREATED_AT',
       [userId]
     );
