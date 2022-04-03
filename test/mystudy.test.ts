@@ -59,7 +59,7 @@ beforeAll(async () => {
   mockStudy.capacity = 10;
   mockStudy.hostId = mockHost;
   mockStudy.categoryCode = 100;
-  mockStudy.membersCount = 10;
+  mockStudy.membersCount = 1;
   mockStudy.vacancy = 10;
   mockStudy.isOpen = true;
   mockStudy.views = 0;
@@ -130,7 +130,7 @@ describe('내가 신청한 스터디 조회 api', () => {
     expect(res.body).toEqual([]);
   });
 
-  test('신청한 스터디가 있을 경우 해당 스터디의 제목, 생성날짜, 조회수, 북마크수를 응답한다', async () => {
+  test('신청한 스터디가 있을 경우 해당 스터디의 제목, 생성날짜, 조회수, 북마크수, 수락여부, 스터디의 참석자 수, 정원 수를 응답한다', async () => {
     // given
     const cookies = user2cookie;
     await conn
@@ -155,9 +155,14 @@ describe('내가 신청한 스터디 조회 api', () => {
     // then
     expect(res.statusCode).toBe(200);
     expect(res.body.length).toBe(1);
-    expect(res.body[0]).toHaveProperty('title');
-    expect(res.body[0]).toHaveProperty('createdAt');
-    expect(res.body[0]).toHaveProperty('views');
-    expect(res.body[0]).toHaveProperty('bookmarkCount');
+    expect(res.body[0]?.title).toEqual(mockStudy.title);
+    expect(new Date(res.body[0]?.createdAt).toString()).toEqual(
+      new Date(mockStudy.createdAt).toString()
+    );
+    expect(res.body[0]?.views).toEqual(mockStudy.views);
+    expect(res.body[0]?.bookmarkCount).toEqual(mockStudy.bookmarkCount);
+    expect(res.body[0]?.isAccepted).toEqual(false);
+    expect(res.body[0]?.membersCount).toEqual(mockStudy.membersCount);
+    expect(res.body[0]?.capacity).toEqual(mockStudy.capacity);
   });
 });
