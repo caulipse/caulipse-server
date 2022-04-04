@@ -5,10 +5,10 @@ import {
 } from '../entity/StudyEntity';
 
 export enum orderByEnum {
-  LATEST = '최근 등록순',
-  SMALL_VACANCY = '남은 모집인원: 적은 순',
-  LARGE_VACANCY = '남은 모집인원: 많은 순',
-  LAST = '오래된 순',
+  LATEST = 'latest',
+  SMALL_VACANCY = 'small_vacancy',
+  LARGE_VACANCY = 'large_vacancy',
+  LAST = 'oldest',
 }
 
 export interface paginationDTO {

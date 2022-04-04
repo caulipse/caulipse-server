@@ -11,28 +11,28 @@ import {
 import User from './UserEntity';
 
 export enum WeekDayEnum {
-  MON = '월',
-  TUE = '화',
-  WED = '수',
-  THU = '목',
-  FRI = '금',
-  SAT = '토',
-  SUN = '일',
+  MON = 'mon',
+  TUE = 'tue',
+  WED = 'wed',
+  THU = 'thu',
+  FRI = 'fri',
+  SAT = 'sat',
+  SUN = 'sun',
 }
 export enum FrequencyEnum {
-  ONCE = '1회',
-  TWICE = '주 2-4회',
-  MORE = '주 5회 이상',
+  ONCE = 'once',
+  TWICE = 'twice',
+  MORE = 'more',
 }
 export enum LocationEnum {
-  NO_CONTACT = '비대면',
-  ROOM = '학교 스터디룸',
-  LIBRARY = '중앙도서관',
-  S_CAFE = '스터디카페',
-  CAFE = '일반카페',
-  LOC1 = '흑석, 상도',
-  LOC2 = '서울대입구, 낙성대',
-  ELSE = '기타',
+  NO_CONTACT = 'no_contact',
+  ROOM = 'room',
+  LIBRARY = 'library',
+  S_CAFE = 'study_cafe',
+  CAFE = 'cafe',
+  LOC1 = 'loc1',
+  LOC2 = 'loc2',
+  ELSE = 'else',
 }
 
 @Entity({ name: 'STUDY' })
@@ -124,32 +124,32 @@ export default class Study {
  *      weekday:
  *        type: string
  *        enum:
- *        - "월"
- *        - "화"
- *        - "수"
- *        - "목"
- *        - "금"
- *        - "토"
- *        - "일"
+ *        - "mon"
+ *        - "tue"
+ *        - "wed"
+ *        - "thu"
+ *        - "fri"
+ *        - "sat"
+ *        - "sun"
  *        description: "스터디 요일"
  *      frequency:
  *        type: string
  *        enum:
- *        - "1회"
- *        - "주 2-4회"
- *        - "주 5회 이상"
+ *        - "once"
+ *        - "twice"
+ *        - "more"
  *        description: "스터디 빈도"
  *      location:
  *        type: string
  *        enum:
- *        - "비대면"
- *        - "학교 스터디룸"
- *        - "중앙도서관"
- *        - "스터디카페"
- *        - "일반카페"
- *        - "흑석, 상도"
- *        - "서울대입구, 낙성대"
- *        - "기타"
+ *        - "no_contact"
+ *        - "studyroom"
+ *        - "library"
+ *        - "study_cafe"
+ *        - "cafe"
+ *        - "loc1"
+ *        - "loc2"
+ *        - "else"
  *        description: "스터디 장소"
  *      hostId:
  *        $ref: "#/definitions/User"
