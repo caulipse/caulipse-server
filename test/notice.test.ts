@@ -151,10 +151,10 @@ describe('공지사항 페이지네이션', () => {
 
   test('5개의 항목을 요청하면 5개의 항목만 반환한다', async () => {
     // given
-    const amount = 5;
+    const limit = 5;
 
     // when
-    const res = await request(app).get(`/api/notice?amount=${amount}`);
+    const res = await request(app).get(`/api/notice?limit=${limit}`);
 
     // then
     expect(res.body.data.length).toBe(5);
@@ -171,10 +171,10 @@ describe('공지사항 페이지네이션', () => {
 
   test('5개씩 요청했을 때 총 페이지 갯수 응답은 7이다', async () => {
     // given
-    const amount = 5;
+    const limit = 5;
 
     // when
-    const res = await request(app).get(`/api/notice?amount=${amount}`);
+    const res = await request(app).get(`/api/notice?limit=${limit}`);
 
     // then
     expect(res.body.pages).toBe(7);
@@ -182,10 +182,10 @@ describe('공지사항 페이지네이션', () => {
 
   test('9개씩 요청했을 때 총 페이지 갯수 응답은 4이다', async () => {
     // given
-    const amount = 9;
+    const limit = 9;
 
     // when
-    const res = await request(app).get(`/api/notice?amount=${amount}`);
+    const res = await request(app).get(`/api/notice?limit=${limit}`);
 
     // then
     expect(res.body.pages).toBe(4);
@@ -193,10 +193,10 @@ describe('공지사항 페이지네이션', () => {
 
   test('100개씩 요청했을 때 총 페이지 갯수 응답은 1이다', async () => {
     // given
-    const amount = 100;
+    const limit = 100;
 
     // when
-    const res = await request(app).get(`/api/notice?amount=${amount}`);
+    const res = await request(app).get(`/api/notice?limit=${limit}`);
 
     // then
     expect(res.body.pages).toBe(1);

@@ -17,10 +17,18 @@ export default {
   async findAllNotice(req: Request, res: Response) {
     try {
       const limit = req.query.limit || 12;
-      const offset = req.query.offset || 0; // FIXME: cursor 디폴트값 설정
+      const offset = req.query.offset || 0;
 
       const totalNoticeCount = await findNoticeCount();
       const totalPageCount = Math.floor(totalNoticeCount / +limit) + 1;
+      if (offset >= totalPageCount) {
+        res.json({
+          pages: totalPageCount,
+          data: [],
+        });
+        return;
+      }
+
       const result = await findAllNotice({
         amount: +limit,
         offset: +offset,

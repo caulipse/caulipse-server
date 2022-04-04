@@ -23,7 +23,7 @@ export const findAllNotice = async ({
     .select()
     .orderBy('CREATED_AT', 'DESC')
     .limit(amount)
-    .offset(offset)
+    .offset(offset * amount)
     .execute();
 };
 
