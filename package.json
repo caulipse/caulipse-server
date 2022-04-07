@@ -16,7 +16,8 @@
     "build": "NODE_ENV=prod tsc",
     "pm2:start": "pm2 start dist/src/index.js --name \"caulipse\"",
     "pm2:restart": "pm2 restart caulipse",
-    "pm2:stop": "pm2 stop caulipse"
+    "pm2:stop": "pm2 stop caulipse",
+    "mock:gen": "ts-node scripts/mock-gen.ts"
   },
   "dependencies": {
     "bcrypt": "^5.0.1",
