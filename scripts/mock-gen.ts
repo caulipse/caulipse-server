@@ -236,7 +236,7 @@ for (let i = 0; notifications.length < 100; i++) {
     host: process.env.DB_HOST,
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    database: 'abcd',
+    database: process.env.DB_DATABASE,
     synchronize: true,
     entities: [`${__dirname}/../src/entity/*.{ts,js}`],
   });
