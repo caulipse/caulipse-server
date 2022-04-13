@@ -166,7 +166,7 @@ const updateStudy = async (req: Request, res: Response) => {
 
   try {
     const { studyid } = req.params;
-  
+
     if (!Object.keys(req.body).length) throw new Error(BAD_REQUEST);
     const allowedFields = [
       'title',
