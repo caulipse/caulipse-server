@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import { Request, Response } from 'express';
 import {
@@ -5,6 +6,10 @@ import {
   saveUser,
   updateUserById,
   findUserById,
+  findUserByEmail,
+  updatePasswordById,
+  findUserByToken,
+  updateTokenById,
 } from '../../services/user';
 import { sendMail } from '../../services/mail';
 import { makeSignUpToken } from '../../utils/auth';
@@ -32,6 +37,68 @@ export default {
       res
         .status(400)
         .json({ message: '회원가입 실패: ' + (e as Error).message });
+    }
+  },
+  async updatePassword(req: Request, res: Response) {
+    const OK = '비밀번호 재설정 요청 성공';
+    const BAD_REQUEST = '요청 body에 email이 포함되지 않음';
+    const NOT_FOUND = '가입되지 않은 사용자';
+
+    try {
+      const { portalId } = req.body;
+      if (!portalId) throw new Error(BAD_REQUEST);
+
+      const email = `${portalId}@cau.ac.kr`;
+      const user = await findUserByEmail(email);
+      if (!user) throw new Error(NOT_FOUND);
+
+      if (process.env.NODE_ENV !== 'test') {
+        sendMail(`${portalId}@cau.ac.kr`, user.id, user.token);
+      }
+
+      const newToken = makeSignUpToken(user.id);
+      await updateTokenById(user.id, newToken);
+      res.json({ message: OK });
+    } catch (e) {
+      const err = e as Error;
+      if (err.message === BAD_REQUEST) {
+        res.status(400).json({ message: BAD_REQUEST });
+      } else if (err.message === NOT_FOUND) {
+        res.status(404).json({ message: NOT_FOUND });
+      }
+    }
+  },
+  async saveChangedPassword(req: Request, res: Response) {
+    const OK = '비밀번호 재설정 성공';
+    const BAD_REQUEST = '요청 body에 email 또는 password가 포함되지 않음';
+    const FORBIDDEN = '토큰 검증 실패';
+    const NOT_FOUND = '해당 토큰을 가진 사용자가 존재하지 않음';
+
+    try {
+      const { email, password: newPassword } = req.body;
+      if (!email || !newPassword) throw new Error(BAD_REQUEST);
+
+      const { token } = req.params;
+      const user = await findUserByToken(token);
+      if (!user) throw new Error(NOT_FOUND);
+
+      const decoded = jwt.verify(
+        token,
+        process.env.SIGNUP_TOKEN_SECRET as string
+      ) as { id: string };
+      if (user.id !== decoded.id) throw new Error(FORBIDDEN);
+
+      await updatePasswordById(user.id, newPassword);
+      res.json({ message: OK });
+    } catch (e) {
+      const err = e as Error;
+      if (err.message === BAD_REQUEST) {
+        res.status(400).json({ message: BAD_REQUEST });
+      } else if (err.message === NOT_FOUND) {
+        res.status(404).json({ message: NOT_FOUND });
+      } else {
+        res.status(403).json({ message: FORBIDDEN });
+      }
     }
   },
   async updateUserInfo(req: Request, res: Response) {

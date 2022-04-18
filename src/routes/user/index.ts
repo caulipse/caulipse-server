@@ -19,7 +19,9 @@ router.use('/study/applied', checkToken, controller.getAppliedStudies);
 router.post('/', controller.saveUser);
 router.delete('/', checkToken, controller.deleteUser);
 router.get('/', checkToken, controller.getUser);
+router.patch('/password', controller.updatePassword);
 router.use('/:id/role', roleRouter);
+router.patch('/:token/password', controller.saveChangedPassword);
 router.patch('/:id', controller.updateUserInfo);
 
 export default router;
