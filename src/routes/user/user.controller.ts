@@ -15,7 +15,7 @@ import { sendMail } from '../../services/mail';
 import { makeSignUpToken } from '../../utils/auth';
 import { validateCAU } from '../../utils/mail';
 import { findAllIfParticipatedByUserId } from '../../services/studyUser';
-import { signupMailContent } from '../../utils/mail/html';
+import { passwordResetContent, signupMailContent } from '../../utils/mail/html';
 
 export default {
   async saveUser(req: Request, res: Response) {
@@ -53,12 +53,15 @@ export default {
       const user = await findUserByEmail(email);
       if (!user) throw new Error(NOT_FOUND);
 
-      if (process.env.NODE_ENV !== 'test') {
-        sendMail(`${portalId}@cau.ac.kr`, user.id, user.token);
-      }
-
       const newToken = makeSignUpToken(user.id);
       await updateTokenById(user.id, newToken);
+      if (process.env.NODE_ENV !== 'test') {
+        await sendMail(
+          `${portalId}@cau.ac.kr`,
+          passwordResetContent(email, newToken)
+        );
+      }
+
       res.json({ message: OK });
     } catch (e) {
       const err = e as Error;
