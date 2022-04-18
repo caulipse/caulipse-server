@@ -31,7 +31,11 @@ export default {
       const token = makeSignUpToken(id);
       // TODO: await의 나열보다 Promise.all 의 사용이 성능적인 이점이 있을까?
       await saveUser({ id, email, password, token });
-      const message = await sendMail(email, signupMailContent(id, token));
+      const message = await sendMail(
+        email,
+        '회원가입을 완료해주세요',
+        signupMailContent(id, token)
+      );
 
       res.status(201).json({ message, id });
     } catch (e) {
@@ -58,6 +62,7 @@ export default {
       if (process.env.NODE_ENV !== 'test') {
         await sendMail(
           `${portalId}@cau.ac.kr`,
+          '비밀번호 재설정을 완료해주세요',
           passwordResetContent(email, newToken)
         );
       }
