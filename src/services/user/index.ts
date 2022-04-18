@@ -77,10 +77,11 @@ export const updateUserById = async (id: string, data: UpdateUserDTO) => {
 };
 
 export const updatePasswordById = async (id: string, newPassword: string) => {
+  const hashedPassword = bcrypt.hashSync(newPassword, 10);
   return await getRepository(User)
     .createQueryBuilder()
     .update()
-    .set({ password: newPassword })
+    .set({ password: hashedPassword })
     .where('ID = :id', { id })
     .execute();
 };

@@ -6,6 +6,7 @@ import { db } from '../src/config/db';
 import { saveUser } from '../src/services/user';
 import User from '../src/entity/UserEntity';
 import { makeSignUpToken } from '../src/utils/auth';
+import bcrypt from 'bcrypt';
 
 let conn: Connection;
 let newToken: string;
@@ -103,8 +104,10 @@ describe('비밀번호 재설정 마무리 api', () => {
       .select()
       .where('ID = :id', { id })
       .getOne();
+    if (!updatedUser) throw new Error();
+    const compareHash = bcrypt.compareSync(newPassword, updatedUser.password);
 
     expect(res.statusCode).toBe(200);
-    expect(updatedUser?.password).toBe(newPassword);
+    expect(compareHash).toBeTruthy();
   });
 });
