@@ -74,7 +74,7 @@ const _link = (id: string, token: string) =>
     ],
   });
 
-const _container = (id: string, token: string) =>
+const _signupContainer = (id: string, token: string) =>
   _createElement({
     tagName: 'div',
     className: 'container',
@@ -89,7 +89,7 @@ const _container = (id: string, token: string) =>
     children: [_greeting(), _instruction(), _link(id, token)],
   });
 
-export const html = (id: string, token: string) =>
+export const signupMailContent = (id: string, token: string) =>
   _createElement({
     tagName: 'div',
     className: 'body',
@@ -98,5 +98,5 @@ export const html = (id: string, token: string) =>
       ['padding', '0'],
       ['margin', '0'],
     ],
-    children: [_container(id, token)],
+    children: [_signupContainer(id, token)],
   });
