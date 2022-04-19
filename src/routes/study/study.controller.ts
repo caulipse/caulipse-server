@@ -94,15 +94,11 @@ const createStudy = async (req: Request, res: Response) => {
       'categoryCode',
       'dueDate',
     ];
-    let count = 0;
-    Object.keys(req.body).forEach((key) => {
-      if (allowedFields.includes(key)) {
-        count += 1;
-      } else {
-        throw new Error(BAD_REQUEST);
-      }
-    });
-    if (count < 8) throw new Error(BAD_REQUEST);
+    const keys = Object.keys(req.body);
+    if (
+      keys.some((key) => !allowedFields.includes(key)) ||
+      keys.length < allowedFields.length
+    ) throw new Error(BAD_REQUEST);
 
     const user = await findUserById(id);
     if (!user) {
