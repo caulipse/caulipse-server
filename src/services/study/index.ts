@@ -264,6 +264,30 @@ const searchStudy = async (searchStudyDTO: searchStudyDTO) => {
   return await query.getMany();
 };
 
+export const decreaseMemberCount = async (studyId: string) => {
+  return getRepository(Study)
+    .createQueryBuilder()
+    .update()
+    .set({
+      membersCount: () => 'membersCount - 1',
+      vacancy: () => 'vacancy + 1',
+    })
+    .where('ID = :id', { id: studyId })
+    .execute();
+};
+
+export const increaseMemberCount = async (studyId: string) => {
+  return getRepository(Study)
+    .createQueryBuilder()
+    .update()
+    .set({
+      membersCount: () => 'membersCount + 1',
+      vacancy: () => 'vacancy - 1',
+    })
+    .where('ID = :id', { id: studyId })
+    .execute();
+};
+
 export default {
   countAllStudy,
   getAllStudy,
@@ -275,4 +299,6 @@ export default {
   deleteStudy,
   checkStudyById,
   searchStudy,
+  decreaseMemberCount,
+  increaseMemberCount,
 };
