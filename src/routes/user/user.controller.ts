@@ -435,3 +435,33 @@ export default {
  *       500:
  *         description: "사바 에러"
  */
+
+/**
+ * @swagger
+ * /api/user/duplicate:
+ *   get:
+ *     tags:
+ *     - user
+ *     summary: "이메일 중복 검사"
+ *     description: "이메일 중복 검사를 합니다."
+ *     parameters:
+ *     - in: "query"
+ *       name: "email"
+ *       type: string
+ *       description: "이메일 중복 검사를 할 유저의 email"
+ *       required: true
+ *     responses:
+ *        200:
+ *          description: "닉네임 중복 검사 성공 / data로 true 혹은 false 반환"
+ *          schema:
+ *            type: object
+ *            properties:
+ *              message:
+ *                type: string
+ *                example: "이미 존재하는 닉네임입니다."
+ *              data:
+ *                type: boolean
+ *                example: false
+ *        500:
+ *          description: "서버 오류"
+ */
