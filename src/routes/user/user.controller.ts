@@ -62,7 +62,7 @@ export default {
         await sendMail(
           email,
           '비밀번호 재설정을 완료해주세요',
-          passwordResetContent(email, newToken)
+          passwordResetContent(email, user.id)
         );
       }
 

@@ -74,7 +74,7 @@ const _link = (id: string, token: string) =>
     ],
   });
 
-const _passwordResetLink = (email: string, token: string) =>
+const _passwordResetLink = (email: string, id: string) =>
   _createElement({
     tagName: 'a',
     className: 'button',
@@ -83,7 +83,7 @@ const _passwordResetLink = (email: string, token: string) =>
     attr: [
       [
         'href',
-        `https://github.com/caulipse/caulipse-server?email=${email}&token=${token}`,
+        `https://github.com/caulipse/caulipse-server?email=${email}&id=${id}`,
       ], // TODO: 우리 서비스 주소로 리다이렉트
       ['target', '_blank'],
     ],
