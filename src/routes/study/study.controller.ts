@@ -54,25 +54,10 @@ const getAllStudy = async (req: Request, res: Response) => {
     }
   } catch (e) {
     if ((e as Error).message === BAD_REQUEST) {
-      return res.status(400).json({
-        message: BAD_REQUEST,
-      });
+      return res.status(400).json({ message: BAD_REQUEST });
     } else {
-      return res.status(500).json({
-        message: (e as Error).message,
-      });
+      return res.status(500).json({ message: (e as Error).message });
     }
-  }
-};
-
-const getMyStudy = async (req: Request, res: Response) => {
-  try {
-    const userId = (req.user as { id: string }).id;
-
-    const studies = await studyService.getMyStudy(userId);
-    return res.status(200).json(studies);
-  } catch (e) {
-    return res.status(500).json({ message: (e as Error).message });
   }
 };
 
@@ -110,17 +95,11 @@ const createStudy = async (req: Request, res: Response) => {
     return res.status(201).json({ id });
   } catch (e) {
     if ((e as Error).message === BAD_REQUEST) {
-      return res.status(400).json({
-        message: BAD_REQUEST,
-      });
+      return res.status(400).json({ message: BAD_REQUEST });
     } else if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({
-        message: NOT_FOUND,
-      });
+      return res.status(404).json({ message: NOT_FOUND });
     } else {
-      return res.status(500).json({
-        message: (e as Error).message,
-      });
+      return res.status(500).json({ message: (e as Error).message });
     }
   }
 };
@@ -139,13 +118,9 @@ const getStudybyId = async (req: Request, res: Response) => {
     return res.status(200).json(study);
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({
-        message: NOT_FOUND,
-      });
+      return res.status(404).json({ message: NOT_FOUND });
     } else {
-      return res.status(500).json({
-        message: (e as Error).message,
-      });
+      return res.status(500).json({ message: (e as Error).message });
     }
   }
 };
@@ -198,17 +173,11 @@ const updateStudy = async (req: Request, res: Response) => {
     return res.status(200).json({ message: '스터디 정보 업데이트 성공' });
   } catch (e) {
     if ((e as Error).message === BAD_REQUEST) {
-      return res.status(400).json({
-        message: BAD_REQUEST,
-      });
+      return res.status(400).json({ message: BAD_REQUEST });
     } else if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({
-        message: NOT_FOUND,
-      });
+      return res.status(404).json({ message: NOT_FOUND });
     } else {
-      return res.status(500).json({
-        message: (e as Error).message,
-      });
+      return res.status(500).json({ message: (e as Error).message });
     }
   }
 };
@@ -227,13 +196,9 @@ const deleteStudy = async (req: Request, res: Response) => {
     return res.status(200).json({ message: '스터디 삭제 성공' });
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({
-        message: NOT_FOUND,
-      });
+      return res.status(404).json({ message: NOT_FOUND });
     } else {
-      return res.status(500).json({
-        message: (e as Error).message,
-      });
+      return res.status(500).json({ message: (e as Error).message });
     }
   }
 };
@@ -265,20 +230,56 @@ const searchStudy = async (req: Request, res: Response) => {
       message: message,
     });
   } catch (e) {
-    return res.status(500).json({
-      message: (e as Error).message,
-    });
+    return res.status(500).json({ message: (e as Error).message });
+  }
+};
+
+const getMyStudy = async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as { id: string }).id;
+
+    const studies = await studyService.getMyStudy(userId);
+    return res.status(200).json(studies);
+  } catch (e) {
+    return res.status(500).json({ message: (e as Error).message });
+  }
+};
+
+const closeStudy = async (req: Request, res: Response) => {
+  const BAD_REQUEST = '잘못된 요청입니다';
+  const NOT_FOUND = '데이터베이스에 일치하는 요청값이 없습니다';
+
+  try {
+    const { studyid } = req.params;
+    const study = await studyService.findStudyById(studyid);
+
+    if (!study) throw new Error(NOT_FOUND);
+    if (study.isOpen) {
+      await studyService.closeStudy(study);
+    } else {
+      throw new Error(BAD_REQUEST);
+    }
+    return res.status(200).json({ message: '스터디 마감 성공' });
+  } catch (e) {
+    if ((e as Error).message === BAD_REQUEST) {
+      return res.status(400).json({ message: BAD_REQUEST });
+    } else if ((e as Error).message === NOT_FOUND) {
+      return res.status(404).json({ message: NOT_FOUND });
+    } else {
+      return res.status(500).json({ message: (e as Error).message });
+    }
   }
 };
 
 export default {
   getAllStudy,
-  getMyStudy,
   createStudy,
   getStudybyId,
   updateStudy,
   deleteStudy,
   searchStudy,
+  getMyStudy,
+  closeStudy,
 };
 
 /**
@@ -395,7 +396,6 @@ export default {
  *                  type: number
  *                dueDate:
  *                  type: string
- *                  format: date-time
  *      responses:
  *        201:
  *          description: "올바른 요청"
@@ -413,7 +413,7 @@ export default {
  *            properties:
  *              message:
  *                type: string
- *                example: "Request is not valid"
+ *                example: "요청값이 유효하지 않음"
  *        401:
  *          description: "로그인이 되어있지 않은 경우"
  *          schema:
@@ -448,7 +448,7 @@ export default {
  *            properties:
  *              message:
  *                type: string
- *                example: "일치하는 studyid가 없음"
+ *                example: "데이터베이스에 일치하는 요청값이 없습니다"
  *
  *    patch:
  *      summary: "스터디 정보 업데이트"
@@ -508,7 +508,6 @@ export default {
  *                  type: number
  *                dueDate:
  *                  type: string
- *                  format: date-time
  *      responses:
  *        200:
  *          description: "올바른 요청"
@@ -525,7 +524,7 @@ export default {
  *            properties:
  *              message:
  *                type: string
- *                example: "request is not valid"
+ *                example: "요청값이 유효하지 않음"
  *        401:
  *          description: "로그인이 되어있지 않은 경우"
  *          schema:
@@ -541,7 +540,7 @@ export default {
  *            properties:
  *              message:
  *                type: string
- *                example: "일치하는 studyid가 없음"
+ *                example: "데이터베이스에 일치하는 요청값이 없습니다"
  *
  *    delete:
  *      summary: "스터디 삭제"
@@ -579,7 +578,7 @@ export default {
  *            properties:
  *              message:
  *                type: string
- *                example: "일치하는 studyid가 없음"
+ *                example: "데이터베이스에 일치하는 요청값이 없습니다"
  *
  *  /api/study/search:
  *    get:
@@ -645,4 +644,51 @@ export default {
  *              message:
  *                type: string
  *                example: "로그인 필요"
+ *
+ *  /api/study/{studyid}/close:
+ *    patch:
+ *      summary: "스터디 마감"
+ *      description: "스터디를 강제 마감 혹은 조기 마감시키기 위한 엔드포인트입니다."
+ *      tags:
+ *      - "study"
+ *      parameters:
+ *      - name: "studyid"
+ *        in: "path"
+ *        description: "마감할 스터디 id"
+ *        required: true
+ *        type: string
+ *        format: uuid
+ *      responses:
+ *        200:
+ *          description: "올바른 요청"
+ *          schema:
+ *            type: object
+ *            properties:
+ *              message:
+ *                type: string
+ *                example: "스터디 마감 성공"
+ *        400:
+ *          description: "이미 마감되어 있는 스터디에 요청을 보낸 경우"
+ *          schema:
+ *            type: object
+ *            properties:
+ *              message:
+ *                type: string
+ *                example: "요청값이 유효하지 않음"
+ *        401:
+ *          description: "로그인이 되어있지 않은 경우"
+ *          schema:
+ *            type: object
+ *            properties:
+ *              message:
+ *                type: string
+ *                example: "로그인 필요"
+ *        404:
+ *          description: "전달한 studyid가 데이터베이스에 없는 경우입니다"
+ *          schema:
+ *            type: object
+ *            properties:
+ *              message:
+ *                type: string
+ *                example: "데이터베이스에 일치하는 요청값이 없습니다"
  */

@@ -15,7 +15,7 @@ import {
 } from '../studyUser';
 import { createStudyNoti } from '../notification';
 
-const schedules: { [key: string]: schedule.Job } = {};
+export const schedules: { [key: string]: schedule.Job } = {};
 
 const countAllStudy = async (paginationDto: paginationDTO) => {
   const { categoryCode, frequencyFilter, weekdayFilter, locationFilter } =
@@ -290,6 +290,15 @@ export const increaseMemberCount = async (studyId: string) => {
     .execute();
 };
 
+export const closeStudy = async (study: Study) => {
+  study.isOpen = false;
+  if (process.env.NODE_ENV !== 'test') {
+    schedules[`${study.id}`].cancel();
+    delete schedules[`${study.id}`];
+  }
+  return await getRepository(Study).save(study);
+};
+
 export default {
   countAllStudy,
   getAllStudy,
@@ -303,4 +312,5 @@ export default {
   searchStudy,
   decreaseMemberCount,
   increaseMemberCount,
+  closeStudy,
 };
