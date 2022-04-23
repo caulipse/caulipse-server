@@ -39,14 +39,12 @@ describe('비밀번호 재설정 요청 api', () => {
   test('가입되지 않은 portalId를 body에 포함시켜 요청을 보내면 404 코드로 응답한다', async () => {
     const res = await request(app)
       .patch('/api/user/password')
-      .send({ portalId: 'falsyportalid' });
+      .send({ email: 'falsyportalid@cau.ac.kr' });
     expect(res.statusCode).toBe(404);
   });
 
   test('정상적인 요청을 보내면 데이터베이스의 token 필드를 갱신하고 200 코드로 응답한다', async () => {
-    const res = await request(app)
-      .patch('/api/user/password')
-      .send({ portalId: 'example' });
+    const res = await request(app).patch('/api/user/password').send({ email });
 
     const updatedUser = await conn
       .getRepository(User)

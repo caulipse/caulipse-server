@@ -50,10 +50,9 @@ export default {
     const NOT_FOUND = '가입되지 않은 사용자';
 
     try {
-      const { portalId } = req.body;
-      if (!portalId) throw new Error(BAD_REQUEST);
+      const { email } = req.body;
+      if (!email) throw new Error(BAD_REQUEST);
 
-      const email = `${portalId}@cau.ac.kr`;
       const user = await findUserByEmail(email);
       if (!user) throw new Error(NOT_FOUND);
 
@@ -61,7 +60,7 @@ export default {
       await updateTokenById(user.id, newToken);
       if (process.env.NODE_ENV !== 'test') {
         await sendMail(
-          `${portalId}@cau.ac.kr`,
+          email,
           '비밀번호 재설정을 완료해주세요',
           passwordResetContent(email, newToken)
         );
