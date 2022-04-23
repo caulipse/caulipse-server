@@ -68,15 +68,14 @@ describe('POST /api/study', () => {
       .send({
         title: '스터디 제목',
         studyAbout: '스터디 내용',
-        weekday: '월',
+        weekday: 'mon',
         frequency: FrequencyEnum.TWICE,
         location: LocationEnum.CAFE,
         capacity: 8,
         categoryCode: 101,
         dueDate: new Date(date.getTime() + 60 * 60 * 5),
       });
-    const { studyId } = res.body;
-    studyid = studyId;
+    studyid = res.body.id;
 
     expect(res.status).toBe(201);
     expect(studyid).not.toBeNull();
@@ -115,14 +114,16 @@ describe('GET /api/study', () => {
     const res = await request(app).get('/api/study').query({
       categoryCode: 101,
       frequency: FrequencyEnum.TWICE,
-      weekday: '월',
+      weekday: 'mon',
       location: LocationEnum.CAFE,
     });
-    const { studies, next_cursor } = res.body;
+    const { studies, pageNo, pages, total } = res.body;
 
     expect(res.status).toBe(200);
     expect(studies).not.toBeNull();
-    expect(next_cursor).not.toBeNull();
+    expect(pageNo).not.toBeNull();
+    expect(pages).not.toBeNull();
+    expect(total).not.toBeNull();
 
     expect(studies[0]).toHaveProperty('frequency', FrequencyEnum.TWICE);
     expect(studies[0]).toHaveProperty('weekday', WeekDayEnum.MON);
@@ -133,10 +134,10 @@ describe('GET /api/study', () => {
 describe('GET /api/study/:studyid', () => {
   it('각 studyid에 따라 모든 스터디 상세 정보 반환', async () => {
     const res = await request(app).get(`/api/study/${studyid}`);
-    const { study } = res.body;
 
     expect(res.status).toBe(200);
-    expect(study).toHaveProperty('id', studyid);
+    expect(res.body).not.toBeNull();
+    expect(res.body).toHaveProperty('id', studyid);
   });
 
   it('요청된 studyid가 데이터베이스에 존재하지 않으면 404 응답', async () => {

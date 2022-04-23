@@ -443,7 +443,6 @@ describe('참가인원 조회 api', () => {
       .send();
 
     // then
-    console.log(res.body);
     expect(res.statusCode).toBe(200);
     expect(res.body.length).not.toEqual(0);
     expect(res.body[0].userId).toEqual(user.id);

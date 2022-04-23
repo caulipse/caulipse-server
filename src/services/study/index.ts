@@ -115,11 +115,13 @@ const createStudy = async (studyDTO: studyDTO, user: User) => {
     categoryCode,
     dueDate,
   } = studyDTO;
+  const due = new Date(dueDate);
+  const today = new Date();
 
   const studyId = randomUUID();
   const study = new Study();
   study.id = studyId;
-  study.createdAt = new Date();
+  study.createdAt = today;
   study.title = title;
   study.studyAbout = studyAbout;
   study.weekday = weekday;
@@ -133,47 +135,48 @@ const createStudy = async (studyDTO: studyDTO, user: User) => {
   study.views = 0;
   study.categoryCode = categoryCode;
   study.bookmarkCount = 0;
-  study.dueDate = dueDate;
+  study.dueDate = due;
 
   if (process.env.NODE_ENV !== 'test') {
-    const due = new Date(dueDate);
-    schedules[`${studyId}`] = schedule.scheduleJob(
-      `0 0 ${due.getDate()} ${due.getMonth()} *`,
-      async function () {
-        study.isOpen = false;
-        const members = await findAcceptedByStudyId(studyId);
-        if (members.length !== 0) {
-          const notiTitle = '모집 종료';
-          for (const member of members) {
-            const notiAbout = `모집이 종료되었어요. 스터디를 응원합니다!`;
-            await createStudyNoti(
-              studyId,
-              member?.USER_ID,
-              notiTitle,
-              notiAbout,
-              107
-            );
+    if (due.getFullYear() == today.getFullYear()) {
+      schedules[`${studyId}`] = schedule.scheduleJob(
+        `0 0 ${due.getDate()} ${due.getMonth()} *`,
+        async function () {
+          study.isOpen = false;
+          const members = await findAcceptedByStudyId(studyId);
+          if (members.length !== 0) {
+            const notiTitle = '모집 종료';
+            for (const member of members) {
+              const notiAbout = `모집이 종료되었어요. 스터디를 응원합니다!`;
+              await createStudyNoti(
+                studyId,
+                member?.USER_ID,
+                notiTitle,
+                notiAbout,
+                107
+              );
+            }
           }
-        }
-        const applicants = await findNotAcceptedApplicantsByStudyId(studyId);
-        if (applicants.length !== 0) {
-          const notiTitle = '모집 종료';
-          for (const user of applicants) {
-            const notiAbout = '스터디의 모집이 마감되었어요.';
-            await createStudyNoti(
-              studyId,
-              user?.USER_ID,
-              notiTitle,
-              notiAbout,
-              107
-            );
+          const applicants = await findNotAcceptedApplicantsByStudyId(studyId);
+          if (applicants.length !== 0) {
+            const notiTitle = '모집 종료';
+            for (const user of applicants) {
+              const notiAbout = '스터디의 모집이 마감되었어요.';
+              await createStudyNoti(
+                studyId,
+                user?.USER_ID,
+                notiTitle,
+                notiAbout,
+                107
+              );
+            }
           }
-        }
 
-        schedules[`${studyId}`].cancel();
-        delete schedules[`${studyId}`];
-      }
-    );
+          schedules[`${studyId}`].cancel();
+          delete schedules[`${studyId}`];
+        }
+      );
+    }
   }
 
   await getRepository(Study).save(study);
@@ -200,16 +203,15 @@ const updateStudy = async (studyDTO: studyDTO, study: Study) => {
   if (capacity) study.capacity = capacity;
   if (categoryCode) study.categoryCode = categoryCode;
   if (dueDate) {
-    study.dueDate = dueDate;
+    const due = new Date(dueDate);
+    study.dueDate = due;
     if (process.env.NODE_ENV !== 'test') {
-      const due = new Date(dueDate);
       schedules[`${study.id}`].cancel();
       schedules[`${study.id}`].reschedule(
         `0 0 ${due.getDate()} ${due.getMonth()} *`
       );
     }
   }
-
   return await getRepository(Study).save(study);
 };
 

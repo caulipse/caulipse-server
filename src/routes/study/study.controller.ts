@@ -70,7 +70,7 @@ const getMyStudy = async (req: Request, res: Response) => {
     const userId = (req.user as { id: string }).id;
 
     const studies = await studyService.getMyStudy(userId);
-    return res.status(200).json({ studies });
+    return res.status(200).json(studies);
   } catch (e) {
     return res.status(500).json({ message: (e as Error).message });
   }
@@ -81,7 +81,7 @@ const createStudy = async (req: Request, res: Response) => {
   const NOT_FOUND = '데이터베이스에 일치하는 요청값이 없습니다';
 
   try {
-    const { id } = req.user as { id: string };
+    const userId = (req.user as { id: string }).id;
 
     if (!Object.keys(req.body).length) throw new Error(BAD_REQUEST);
     const allowedFields = [
@@ -98,15 +98,16 @@ const createStudy = async (req: Request, res: Response) => {
     if (
       keys.some((key) => !allowedFields.includes(key)) ||
       keys.length < allowedFields.length
-    ) throw new Error(BAD_REQUEST);
+    )
+      throw new Error(BAD_REQUEST);
 
-    const user = await findUserById(id);
+    const user = await findUserById(userId);
     if (!user) {
       throw new Error(NOT_FOUND);
     }
-    const studyId = await studyService.createStudy(req.body, user);
+    const id = await studyService.createStudy(req.body, user);
 
-    return res.status(201).json({ studyId });
+    return res.status(201).json({ id });
   } catch (e) {
     if ((e as Error).message === BAD_REQUEST) {
       return res.status(400).json({
@@ -135,7 +136,7 @@ const getStudybyId = async (req: Request, res: Response) => {
       throw new Error(NOT_FOUND);
     }
     await studyService.updateStudyViews(study);
-    return res.status(200).json({ study });
+    return res.status(200).json(study);
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
       return res.status(404).json({
@@ -164,8 +165,8 @@ const updateStudy = async (req: Request, res: Response) => {
       'frequency',
       'location',
       'capacity',
-      'isRecruiting',
       'categoryCode',
+      'dueDate',
     ];
     Object.keys(req.body).forEach((key) => {
       if (!allowedFields.includes(key)) throw new Error(BAD_REQUEST);
