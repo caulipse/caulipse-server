@@ -8,10 +8,11 @@ import { orderByEnum } from '../../types/study.dto';
 const getAllStudy = async (req: Request, res: Response) => {
   const BAD_REQUEST = '요청값이 유효하지 않음';
 
-  const categoryCode = Number(req.query.categoryCode);
+  const categoryCode = parseInt(req.query.categoryCode as string);
   const frequencyFilter = req.query.frequency as string;
   const weekdayFilter = req.query.weekday as string;
   const locationFilter = req.query.location as string;
+  const hideCloseTag = parseInt(req.query.hideCloseTag as string) || 0; // 0: off, 1: on
   const orderBy: string = (req.query.order_by as string) || orderByEnum.LATEST;
   // offset
   const pageNo = Number(req.query.pageNo) || 1;
@@ -23,6 +24,7 @@ const getAllStudy = async (req: Request, res: Response) => {
       frequencyFilter,
       weekdayFilter,
       locationFilter,
+      hideCloseTag,
       orderBy,
       pageNo,
       limit,
@@ -32,6 +34,7 @@ const getAllStudy = async (req: Request, res: Response) => {
       frequencyFilter,
       weekdayFilter,
       locationFilter,
+      hideCloseTag,
       orderBy,
       pageNo,
       limit,

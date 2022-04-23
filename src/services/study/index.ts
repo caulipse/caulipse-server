@@ -45,15 +45,26 @@ const getAllStudy = async (paginationDTO: paginationDTO) => {
     frequencyFilter,
     weekdayFilter,
     locationFilter,
+    hideCloseTag,
     orderBy,
     pageNo,
     limit,
   } = paginationDTO;
   const offset = (pageNo - 1) * limit;
 
-  const sq = getRepository(Study)
-    .createQueryBuilder('study')
-    .leftJoinAndSelect('study.hostId', 'user');
+  let sq;
+  if (hideCloseTag) {
+    // on
+    sq = getRepository(Study)
+      .createQueryBuilder('study')
+      .leftJoinAndSelect('study.hostId', 'user');
+  } else {
+    // off
+    sq = getRepository(Study)
+      .createQueryBuilder('study')
+      .addSelect('study.dueDate')
+      .leftJoinAndSelect('study.hostId', 'user');
+  }
 
   if (categoryCode) {
     sq.andWhere('study.categoryCode = :categoryCode', { categoryCode });
@@ -84,6 +95,7 @@ const getAllStudy = async (paginationDTO: paginationDTO) => {
 const getMyStudy = async (userId: string) => {
   return await getRepository(Study)
     .createQueryBuilder('study')
+    .addSelect('study.dueDate')
     .leftJoinAndSelect('study.hostId', 'user')
     .where('study.HOST_ID = :userId', { userId })
     .orderBy('study.createdAt', 'ASC')
@@ -93,6 +105,7 @@ const getMyStudy = async (userId: string) => {
 const findStudyById = async (id: string) => {
   return await getRepository(Study)
     .createQueryBuilder('study')
+    .addSelect('study.dueDate')
     .leftJoinAndSelect('study.hostId', 'user')
     .where('study.id = :id', { id })
     .orderBy('study.createdAt', 'ASC')
@@ -178,7 +191,6 @@ const createStudy = async (studyDTO: studyDTO, user: User) => {
       );
     }
   }
-
   await getRepository(Study).save(study);
   return studyId;
 };
@@ -233,6 +245,7 @@ const searchStudy = async (searchStudyDTO: searchStudyDTO) => {
 
   const query = getRepository(Study)
     .createQueryBuilder('study')
+    .addSelect('study.dueDate')
     .leftJoinAndSelect('study.hostId', 'user')
     .where(
       new Brackets((qb) => {

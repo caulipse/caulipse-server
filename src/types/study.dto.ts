@@ -16,6 +16,7 @@ export interface paginationDTO {
   frequencyFilter: string;
   weekdayFilter: string;
   locationFilter: string;
+  hideCloseTag: number;
   orderBy: string;
   pageNo: number;
   limit: number;
