@@ -46,7 +46,7 @@ export default {
   },
   async updatePassword(req: Request, res: Response) {
     const OK = '비밀번호 재설정 요청 성공';
-    const BAD_REQUEST = '요청 body에 portalId가 포함되지 않음';
+    const BAD_REQUEST = '요청 body에 email이 포함되지 않음';
     const NOT_FOUND = '가입되지 않은 사용자';
 
     try {
@@ -79,7 +79,7 @@ export default {
   async saveChangedPassword(req: Request, res: Response) {
     const OK = '비밀번호 재설정 성공';
     const BAD_REQUEST = '요청 body에 email 또는 password가 포함되지 않음';
-    const NOT_FOUND = '해당 토큰을 가진 사용자가 존재하지 않음';
+    const NOT_FOUND = '해당 id를 가진 사용자가 존재하지 않음';
 
     try {
       const { email, password: newPassword } = req.body;
@@ -311,9 +311,9 @@ export default {
  *       schema:
  *         type: object
  *         properties:
- *           portalId:
+ *           email:
  *             type: string
- *             example: "testadmin1"
+ *             example: "testadmin1@cau.ac.kr"
  *
  *     responses:
  *       200:
@@ -325,13 +325,13 @@ export default {
  *               type: string
  *               example: "비밀번호 재설정 요청 성공"
  *       400:
- *         description: "요청 body에 portalId가 포함되지 않음"
+ *         description: "요청 body에 email이 포함되지 않음"
  *         schema:
  *           type: object
  *           properties:
  *             message:
  *               type: string
- *               example: "요청 body에 portalId가 포함되지 않음"
+ *               example: "요청 body에 email이 포함되지 않음"
  *       404:
  *         description: "사용자의 portalId에 연결된 중앙대이메일이 데이터베이스에 존재하지 않은 경우"
  *         schema:
@@ -341,7 +341,7 @@ export default {
  *               type: string
  *               example: "가입되지 않은 사용자"
  *
- * /api/user/{token}/password:
+ * /api/user/{id}/password:
  *   patch:
  *     tags:
  *     - user
@@ -349,9 +349,9 @@ export default {
  *     description: "비밀번호를 수정하기 위한 메일 인증을 요청하기 위한 엔드포인트입니다"
  *     parameters:
  *     - in: "path"
- *       name: "token"
+ *       name: "id"
  *       type: string
- *       description: "회원정보를 수정할 사용자에게 발급된 토큰"
+ *       description: "회원정보를 수정할 사용자의 id값"
  *       required: true
  *     - in: "body"
  *       name: "body"
@@ -384,22 +384,14 @@ export default {
  *             message:
  *               type: string
  *               example: "요청 body에 email 또는 password가 포함되지 않음"
- *       403:
- *         description: "토큰 관련 에러 발생"
- *         schema:
- *           type: object
- *           properties:
- *             message:
- *               type: string
- *               example: "토큰 검증 실패"
  *       404:
- *         description: "해당 토큰을 가진 사용자가 존재하지 않음"
+ *         description: "해당 id를 가진 사용자가 존재하지 않음"
  *         schema:
  *           type: object
  *           properties:
  *             message:
  *               type: string
- *               example: "해당 토큰을 가진 사용자가 존재하지 않음"
+ *               example: "해당 id를 가진 사용자가 존재하지 않음"
  */
 
 /**
