@@ -79,22 +79,15 @@ export default {
   async saveChangedPassword(req: Request, res: Response) {
     const OK = '비밀번호 재설정 성공';
     const BAD_REQUEST = '요청 body에 email 또는 password가 포함되지 않음';
-    const FORBIDDEN = '토큰 검증 실패';
     const NOT_FOUND = '해당 토큰을 가진 사용자가 존재하지 않음';
 
     try {
       const { email, password: newPassword } = req.body;
       if (!email || !newPassword) throw new Error(BAD_REQUEST);
 
-      const { token } = req.params;
-      const user = await findUserByToken(token);
+      const { id } = req.params;
+      const user = await findUserById(id);
       if (!user) throw new Error(NOT_FOUND);
-
-      const decoded = jwt.verify(
-        token,
-        process.env.SIGNUP_TOKEN_SECRET as string
-      ) as { id: string };
-      if (user.id !== decoded.id) throw new Error(FORBIDDEN);
 
       await updatePasswordById(user.id, newPassword);
       res.json({ message: OK });
@@ -105,7 +98,7 @@ export default {
       } else if (err.message === NOT_FOUND) {
         res.status(404).json({ message: NOT_FOUND });
       } else {
-        res.status(403).json({ message: FORBIDDEN });
+        res.status(500).json({ message: 'error' });
       }
     }
   },

@@ -13,6 +13,7 @@ let newToken: string;
 const initialToken = '';
 const email = 'example@cau.ac.kr';
 const password = 'test';
+const id = randomUUID();
 
 beforeAll(async () => {
   conn = await createConnection({
@@ -20,7 +21,7 @@ beforeAll(async () => {
     database: process.env.DB_DATABASE_TEST,
   } as ConnectionOptions);
 
-  saveUser({ id: randomUUID(), email, password, token: initialToken });
+  saveUser({ id, email, password, token: initialToken });
 });
 
 afterAll(async () => {
@@ -62,23 +63,23 @@ describe('비밀번호 재설정 요청 api', () => {
 describe('비밀번호 재설정 마무리 api', () => {
   test('요청 body에 이메일 또는 패스워드가 포함되지 않을 시 400 코드로 응답한다', async () => {
     const res = await request(app)
-      .patch(`/api/user/${newToken}/password`)
+      .patch(`/api/user/${id}/password`)
       .send({ field: false });
     expect(res.statusCode).toBe(400);
   });
 
   test('데이터베이스에 존재하지 않는 토큰을 요청에 포함할 시 403 코드로 응답한다', async () => {
-    const invalidToken = 'askdfjosadjfokjo';
+    const invalidId = 'askdfjosadjfokjo';
     const res = await request(app)
-      .patch(`/api/user/${invalidToken}/password`)
+      .patch(`/api/user/${invalidId}/password`)
       .send({ email, password: 'asdf' });
     expect(res.statusCode).toBe(404);
   });
 
   test('올바른 요청일 경우 사용자의 비밀번호를 전달된 비밀번호로 업데이트한다', async () => {
     const newPassword = 'updated';
-    const id = randomUUID();
-    const token = makeSignUpToken(id);
+    const id2 = randomUUID();
+    const token = makeSignUpToken(id2);
     const email2 = 'asdf@cau.ac.kr';
 
     await conn
@@ -86,7 +87,7 @@ describe('비밀번호 재설정 마무리 api', () => {
       .createQueryBuilder()
       .insert()
       .values({
-        id: id,
+        id: id2,
         email: email2,
         password: 'test',
         isLogout: false,
@@ -94,13 +95,13 @@ describe('비밀번호 재설정 마무리 api', () => {
       })
       .execute();
     const res = await request(app)
-      .patch(`/api/user/${token}/password`)
+      .patch(`/api/user/${id2}/password`)
       .send({ email: email2, password: newPassword });
     const updatedUser = await conn
       .getRepository(User)
       .createQueryBuilder()
       .select()
-      .where('ID = :id', { id })
+      .where('ID = :id', { id: id2 })
       .getOne();
     if (!updatedUser) throw new Error();
     const compareHash = bcrypt.compareSync(newPassword, updatedUser.password);
