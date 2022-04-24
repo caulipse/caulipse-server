@@ -24,7 +24,15 @@ const countAllStudy = async (paginationDto: paginationDTO) => {
   const query = await getRepository(Study).createQueryBuilder('study');
 
   if (categoryCode) {
-    query.andWhere('study.categoryCode = :categoryCode', { categoryCode });
+    if (categoryCode % 100 == 0) {
+      // 상위 카테고리
+      query.andWhere('study.categoryCode BETWEEN :from AND :to', {
+        from: categoryCode,
+        to: categoryCode + 6,
+      });
+    } else {
+      query.andWhere('study.categoryCode = :categoryCode', { categoryCode });
+    }
   }
 
   if (frequencyFilter) {
@@ -67,7 +75,15 @@ const getAllStudy = async (paginationDTO: paginationDTO) => {
     sq.addSelect('study.dueDate');
   }
   if (categoryCode) {
-    sq.andWhere('study.categoryCode = :categoryCode', { categoryCode });
+    if (categoryCode % 100 == 0) {
+      // 상위 카테고리
+      sq.andWhere('study.categoryCode BETWEEN :from AND :to', {
+        from: categoryCode,
+        to: categoryCode + 6,
+      });
+    } else {
+      sq.andWhere('study.categoryCode = :categoryCode', { categoryCode });
+    }
   }
 
   if (frequencyFilter) {

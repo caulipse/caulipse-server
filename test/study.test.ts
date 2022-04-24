@@ -72,7 +72,7 @@ describe('POST /api/study', () => {
         frequency: FrequencyEnum.TWICE,
         location: [LocationEnum.CAFE, LocationEnum.ELSE],
         capacity: 8,
-        categoryCode: 101,
+        categoryCode: 100,
         dueDate: new Date(date.getTime() + 60 * 60 * 5),
       });
     studyid = res.body.id;
@@ -101,7 +101,7 @@ describe('POST /api/study', () => {
         frequency: FrequencyEnum.TWICE,
         location: [LocationEnum.CAFE, LocationEnum.ELSE],
         capacity: 8,
-        categorycode: 101,
+        categorycode: 100,
         dueDate: new Date(date.getTime() + 60 * 60 * 5),
       });
 
@@ -112,7 +112,7 @@ describe('POST /api/study', () => {
 describe('GET /api/study', () => {
   it('query를 포함한 요청을 받으면 필터링, 정렬, 페이지네이션을 거친 후 스터디 목록과 페이지 커서 반환(첫번째 페이지) - 마감항목 포함 O', async () => {
     const res = await request(app).get('/api/study').query({
-      categoryCode: 101,
+      categoryCode: 100,
       frequency: FrequencyEnum.TWICE,
       // weekday: 'mon,tue',
       // location: LocationEnum.CAFE + ',' + LocationEnum.ELSE,
@@ -125,6 +125,7 @@ describe('GET /api/study', () => {
     expect(pages).not.toBeNull();
     expect(total).not.toBeNull();
 
+    expect(studies[0]).toHaveProperty('categoryCode', 100);
     expect(studies[0]).toHaveProperty('frequency', FrequencyEnum.TWICE);
     /*
     expect(studies[0]).toHaveProperty('weekday', [
@@ -141,7 +142,7 @@ describe('GET /api/study', () => {
 
   it('query를 포함한 요청을 받으면 필터링, 정렬, 페이지네이션을 거친 후 스터디 목록과 페이지 커서 반환(첫번째 페이지) - 마감항목 포함 X', async () => {
     const res = await request(app).get('/api/study').query({
-      categoryCode: 101,
+      categoryCode: 100,
       frequency: FrequencyEnum.TWICE,
       // weekday: 'mon,tue',
       // location: LocationEnum.CAFE + ',' + LocationEnum.ELSE,
@@ -155,6 +156,7 @@ describe('GET /api/study', () => {
     expect(pages).not.toBeNull();
     expect(total).not.toBeNull();
 
+    expect(studies[0]).toHaveProperty('categoryCode', 100);
     expect(studies[0]).toHaveProperty('frequency', FrequencyEnum.TWICE);
     /*
     expect(studies[0]).toHaveProperty('weekday', [
@@ -208,7 +210,7 @@ describe('PATCH /api/study/:studyid', () => {
         frequency: FrequencyEnum.MORE,
         location: [LocationEnum.LIBRARY, LocationEnum.NO_CONTACT],
         capacity: 10,
-        categoryCode: 101,
+        categoryCode: 100,
         dueDate: new Date(date.getTime() + 60 * 60 * 7),
       });
 
@@ -244,7 +246,7 @@ describe('PATCH /api/study/:studyid', () => {
         frequency: FrequencyEnum.MORE,
         location: [LocationEnum.LIBRARY, LocationEnum.NO_CONTACT],
         capacity: 10,
-        categoryCode: 101,
+        categoryCode: 100,
         dueDate: new Date(date.getTime() + 60 * 60 * 7),
       });
 
@@ -263,7 +265,7 @@ describe('PATCH /api/study/:studyid', () => {
         frequency: FrequencyEnum.MORE,
         location: [LocationEnum.LIBRARY, LocationEnum.NO_CONTACT],
         capacity: 10,
-        categoryCode: 101,
+        categoryCode: 100,
         dueDate: new Date(date.getTime() + 60 * 60 * 7),
       });
 
