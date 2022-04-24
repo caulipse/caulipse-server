@@ -51,6 +51,13 @@ export const findUserById = async (id: string) => {
     .getOne();
 };
 
+export const findUserByToken = async (token: string) => {
+  return await getRepository(User)
+    .createQueryBuilder()
+    .select()
+    .where('TOKEN = :token', { token })
+    .getOne();
+};
 interface UpdateUserDTO {
   email: string;
   password: string;
@@ -65,6 +72,25 @@ export const updateUserById = async (id: string, data: UpdateUserDTO) => {
     .createQueryBuilder()
     .update()
     .set({ email, password, isLogout, token, role })
+    .where('ID = :id', { id })
+    .execute();
+};
+
+export const updatePasswordById = async (id: string, newPassword: string) => {
+  const hashedPassword = bcrypt.hashSync(newPassword, 10);
+  return await getRepository(User)
+    .createQueryBuilder()
+    .update()
+    .set({ password: hashedPassword })
+    .where('ID = :id', { id })
+    .execute();
+};
+
+export const updateTokenById = async (id: string, token: string) => {
+  return await getRepository(User)
+    .createQueryBuilder()
+    .update()
+    .set({ token })
     .where('ID = :id', { id })
     .execute();
 };
