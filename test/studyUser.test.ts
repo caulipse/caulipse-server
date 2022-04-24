@@ -55,9 +55,9 @@ beforeAll(async () => {
   mockStudy.id = studyId;
   mockStudy.title = 'STUDY TITLE';
   mockStudy.studyAbout = 'STUDY ABOUT';
-  mockStudy.weekday = WeekDayEnum.TUE;
+  mockStudy.weekday = [WeekDayEnum.MON, WeekDayEnum.TUE];
   mockStudy.frequency = FrequencyEnum.MORE;
-  mockStudy.location = LocationEnum.LIBRARY;
+  mockStudy.location = [LocationEnum.LIBRARY, LocationEnum.NO_CONTACT];
   mockStudy.capacity = 10;
   mockStudy.hostId = mockHost;
   mockStudy.categoryCode = 100;
@@ -303,9 +303,9 @@ describe('참가신청 수락대기중인 사용자 목록 조회 api', () => {
         id: myStudyId,
         title: 'STUDY TITLE',
         studyAbout: 'STUDY ABOUT',
-        weekday: WeekDayEnum.TUE,
+        weekday: [WeekDayEnum.MON, WeekDayEnum.TUE],
         frequency: FrequencyEnum.MORE,
-        location: LocationEnum.LIBRARY,
+        location: [LocationEnum.LIBRARY, LocationEnum.NO_CONTACT],
         capacity: 10,
         hostId: newUser,
         categoryCode: 100,
@@ -391,9 +391,9 @@ describe('참가인원 조회 api', () => {
     study.id = randomUUID();
     study.title = 'STUDY TITLE';
     study.studyAbout = 'STUDY ABOUT';
-    study.weekday = WeekDayEnum.TUE;
+    study.weekday = [WeekDayEnum.MON, WeekDayEnum.TUE];
     study.frequency = FrequencyEnum.MORE;
-    study.location = LocationEnum.LIBRARY;
+    study.location = [LocationEnum.LIBRARY, LocationEnum.NO_CONTACT];
     study.capacity = 10;
     study.hostId = mockHost;
     study.categoryCode = 100;

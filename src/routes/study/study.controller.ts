@@ -1,4 +1,9 @@
 import { Request, Response } from 'express';
+import {
+  FrequencyEnum,
+  LocationEnum,
+  WeekDayEnum,
+} from '../../entity/StudyEntity';
 import { createStudyNoti } from '../../services/notification';
 import studyService from '../../services/study';
 import { findAllByStudyId } from '../../services/studyUser';
@@ -9,20 +14,42 @@ const getAllStudy = async (req: Request, res: Response) => {
   const BAD_REQUEST = '요청값이 유효하지 않음';
 
   const categoryCode = parseInt(req.query.categoryCode as string);
+  const weekdayFilter = req.query.weekday
+    ? (req.query.weekday as string).split(',')
+    : null;
   const frequencyFilter = req.query.frequency as string;
-  const weekdayFilter = req.query.weekday as string;
-  const locationFilter = req.query.location as string;
+  const locationFilter = req.query.location
+    ? (req.query.location as string).split(',')
+    : null;
   const hideCloseTag = parseInt(req.query.hideCloseTag as string) || 0; // 0: off, 1: on
-  const orderBy: string = (req.query.order_by as string) || orderByEnum.LATEST;
+  const orderBy = (req.query.order_by as string) || orderByEnum.LATEST;
   // offset
   const pageNo = Number(req.query.pageNo) || 1;
   const limit = Number(req.query.limit) || 12;
 
   try {
+    if (weekdayFilter && !weekdayFilter.length) {
+      weekdayFilter.forEach((weekday) => {
+        if (!(Object.values(WeekDayEnum) as string[]).includes(weekday))
+          throw new Error(BAD_REQUEST);
+      });
+    }
+    if (frequencyFilter) {
+      if (!(Object.values(FrequencyEnum) as string[]).includes(frequencyFilter))
+        throw new Error(BAD_REQUEST);
+    }
+    if (locationFilter && !locationFilter.length) {
+      locationFilter.forEach((location) => {
+        if (!(Object.values(LocationEnum) as string[]).includes(location))
+          throw new Error(BAD_REQUEST);
+      });
+    }
+    if (!(Object.values(orderByEnum) as string[]).includes(orderBy))
+      throw new Error(BAD_REQUEST);
     const studies = await studyService.getAllStudy({
       categoryCode,
-      frequencyFilter,
       weekdayFilter,
+      frequencyFilter,
       locationFilter,
       hideCloseTag,
       orderBy,
@@ -31,8 +58,8 @@ const getAllStudy = async (req: Request, res: Response) => {
     });
     const total = await studyService.countAllStudy({
       categoryCode,
-      frequencyFilter,
       weekdayFilter,
+      frequencyFilter,
       locationFilter,
       hideCloseTag,
       orderBy,
@@ -70,7 +97,6 @@ const createStudy = async (req: Request, res: Response) => {
 
   try {
     const userId = (req.user as { id: string }).id;
-
     if (!Object.keys(req.body).length) throw new Error(BAD_REQUEST);
     const allowedFields = [
       'title',
@@ -88,6 +114,20 @@ const createStudy = async (req: Request, res: Response) => {
       keys.length < allowedFields.length
     )
       throw new Error(BAD_REQUEST);
+    if (!req.body.weekday.length || !req.body.location.length)
+      throw new Error(BAD_REQUEST);
+    req.body.weekday.forEach((value: string) => {
+      if (!(Object.values(WeekDayEnum) as string[]).includes(value))
+        throw new Error(BAD_REQUEST);
+    });
+    if (
+      !(Object.values(FrequencyEnum) as string[]).includes(req.body.frequency)
+    )
+      throw new Error(BAD_REQUEST);
+    req.body.location.forEach((value: string) => {
+      if (!(Object.values(LocationEnum) as string[]).includes(value))
+        throw new Error(BAD_REQUEST);
+    });
 
     const user = await findUserById(userId);
     if (!user) {
@@ -134,7 +174,6 @@ const updateStudy = async (req: Request, res: Response) => {
 
   try {
     const { studyid } = req.params;
-
     if (!Object.keys(req.body).length) throw new Error(BAD_REQUEST);
     const allowedFields = [
       'title',
@@ -148,6 +187,20 @@ const updateStudy = async (req: Request, res: Response) => {
     ];
     Object.keys(req.body).forEach((key) => {
       if (!allowedFields.includes(key)) throw new Error(BAD_REQUEST);
+    });
+    if (!req.body.weekday.length || !req.body.location.length)
+      throw new Error(BAD_REQUEST);
+    req.body.weekday.forEach((value: string) => {
+      if (!(Object.values(WeekDayEnum) as string[]).includes(value))
+        throw new Error(BAD_REQUEST);
+    });
+    if (
+      !(Object.values(FrequencyEnum) as string[]).includes(req.body.frequency)
+    )
+      throw new Error(BAD_REQUEST);
+    req.body.location.forEach((value: string) => {
+      if (!(Object.values(LocationEnum) as string[]).includes(value))
+        throw new Error(BAD_REQUEST);
     });
 
     const study = await studyService.findStudyById(studyid);
@@ -207,33 +260,52 @@ const deleteStudy = async (req: Request, res: Response) => {
 };
 
 const searchStudy = async (req: Request, res: Response) => {
+  const BAD_REQUEST = '요청값이 유효하지 않음';
+
   const keyword: string = req.query.keyword as string;
+  const weekdayFilter = req.query.weekday
+    ? (req.query.weekday as string).split(',')
+    : null;
   const frequencyFilter = req.query.frequency as string;
-  const weekdayFilter = req.query.weekday as string;
-  const locationFilter = req.query.location as string;
+  const locationFilter = req.query.location
+    ? (req.query.location as string).split(',')
+    : null;
   const orderBy: string = (req.query.order_by as string) || orderByEnum.LATEST;
 
   try {
+    if (weekdayFilter && !weekdayFilter.length) {
+      weekdayFilter.forEach((weekday) => {
+        if (!(Object.values(WeekDayEnum) as string[]).includes(weekday))
+          throw new Error(BAD_REQUEST);
+      });
+    }
+    if (frequencyFilter) {
+      if (!(Object.values(FrequencyEnum) as string[]).includes(frequencyFilter))
+        throw new Error(BAD_REQUEST);
+    }
+    if (locationFilter && !locationFilter.length) {
+      locationFilter.forEach((location) => {
+        if (!(Object.values(LocationEnum) as string[]).includes(location))
+          throw new Error(BAD_REQUEST);
+      });
+    }
+    if (!(Object.values(orderByEnum) as string[]).includes(orderBy))
+      throw new Error(BAD_REQUEST);
     const studies = await studyService.searchStudy({
       keyword,
-      frequencyFilter,
       weekdayFilter,
+      frequencyFilter,
       locationFilter,
       orderBy,
     });
 
-    let message;
-    if (studies.length === 0) {
-      message = '요청에 해당하는 스터디가 존재하지 않습니다';
-    } else {
-      message = '스터디 검색 성공';
-    }
-    return res.status(200).json({
-      studies,
-      message: message,
-    });
+    return res.status(200).json(studies);
   } catch (e) {
-    return res.status(500).json({ message: (e as Error).message });
+    if ((e as Error).message === BAD_REQUEST) {
+      return res.status(400).json({ message: BAD_REQUEST });
+    } else {
+      return res.status(500).json({ message: (e as Error).message });
+    }
   }
 };
 
@@ -367,15 +439,17 @@ export default {
  *                studyAbout:
  *                  type: string
  *                weekday:
- *                  type: string
- *                  enum:
- *                  - "mon"
- *                  - "tue"
- *                  - "wed"
- *                  - "thu"
- *                  - "fri"
- *                  - "sat"
- *                  - "sun"
+ *                  type: array
+ *                  items:
+ *                    type: string
+ *                    enum:
+ *                    - "mon"
+ *                    - "tue"
+ *                    - "wed"
+ *                    - "thu"
+ *                    - "fri"
+ *                    - "sat"
+ *                    - "sun"
  *                frequency:
  *                  type: string
  *                  enum:
@@ -383,16 +457,18 @@ export default {
  *                  - "twice"
  *                  - "more"
  *                location:
- *                  type: string
- *                  enum:
- *                  - "no_contact"
- *                  - "studyroom"
- *                  - "library"
- *                  - "study_cafe"
- *                  - "cafe"
- *                  - "loc1"
- *                  - "loc2"
- *                  - "else"
+ *                  type: array
+ *                  items:
+ *                    type: string
+ *                    enum:
+ *                    - "no_contact"
+ *                    - "studyroom"
+ *                    - "library"
+ *                    - "study_cafe"
+ *                    - "cafe"
+ *                    - "loc1"
+ *                    - "loc2"
+ *                    - "else"
  *                capacity:
  *                  type: number
  *                categoryCode:
@@ -479,15 +555,17 @@ export default {
  *                studyAbout:
  *                  type: string
  *                weekday:
- *                  type: string
- *                  enum:
- *                  - "mon"
- *                  - "tue"
- *                  - "wed"
- *                  - "thu"
- *                  - "fri"
- *                  - "sat"
- *                  - "sun"
+ *                  type: array
+ *                  items:
+ *                    type: string
+ *                    enum:
+ *                    - "mon"
+ *                    - "tue"
+ *                    - "wed"
+ *                    - "thu"
+ *                    - "fri"
+ *                    - "sat"
+ *                    - "sun"
  *                frequency:
  *                  type: string
  *                  enum:
@@ -495,16 +573,18 @@ export default {
  *                  - "twice"
  *                  - "more"
  *                location:
- *                  type: string
- *                  enum:
- *                  - "no_contact"
- *                  - "studyroom"
- *                  - "library"
- *                  - "study_cafe"
- *                  - "cafe"
- *                  - "loc1"
- *                  - "loc2"
- *                  - "else"
+ *                  type: array
+ *                  items:
+ *                    type: string
+ *                    enum:
+ *                    - "no_contact"
+ *                    - "studyroom"
+ *                    - "library"
+ *                    - "study_cafe"
+ *                    - "cafe"
+ *                    - "loc1"
+ *                    - "loc2"
+ *                    - "else"
  *                capacity:
  *                  type: number
  *                categorycode:

@@ -49,14 +49,14 @@ export default class Study {
   @Column({ name: 'STUDY_ABOUT' })
   studyAbout!: string;
 
-  @Column('enum', { enum: WeekDayEnum, name: 'WEEKDAY' })
-  weekday!: WeekDayEnum;
+  @Column('set', { enum: WeekDayEnum, name: 'WEEKDAY' })
+  weekday!: WeekDayEnum[];
 
   @Column('enum', { enum: FrequencyEnum, name: 'FREQUENCY' })
   frequency!: FrequencyEnum;
 
-  @Column('enum', { enum: LocationEnum, name: 'LOCATION' })
-  location!: LocationEnum;
+  @Column('set', { enum: LocationEnum, name: 'LOCATION' })
+  location!: LocationEnum[];
 
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn({ name: 'HOST_ID' })

@@ -13,9 +13,9 @@ export enum orderByEnum {
 
 export interface paginationDTO {
   categoryCode: number;
+  weekdayFilter: string[] | null;
   frequencyFilter: string;
-  weekdayFilter: string;
-  locationFilter: string;
+  locationFilter: string[] | null;
   hideCloseTag: number;
   orderBy: string;
   pageNo: number;
@@ -24,9 +24,9 @@ export interface paginationDTO {
 export interface studyDTO {
   title: string;
   studyAbout: string;
-  weekday: WeekDayEnum;
+  weekday: WeekDayEnum[];
   frequency: FrequencyEnum;
-  location: LocationEnum;
+  location: LocationEnum[];
   capacity: number;
   categoryCode: number;
   dueDate: string;
@@ -34,8 +34,8 @@ export interface studyDTO {
 
 export interface searchStudyDTO {
   keyword: string;
+  weekdayFilter: string[] | null;
   frequencyFilter: string;
-  weekdayFilter: string;
-  locationFilter: string;
+  locationFilter: string[] | null;
   orderBy: string;
 }

@@ -111,9 +111,9 @@ function makeStudy(idx: number, host: User): Study {
   study.createdAt = getRandomDate();
   study.title = `study#${idx}`;
   study.studyAbout = `study abount #${idx}`;
-  study.weekday = pickRandomEnumValue(WeekDayEnum);
+  study.weekday = [pickRandomEnumValue(WeekDayEnum)];
   study.frequency = pickRandomEnumValue(FrequencyEnum);
-  study.location = pickRandomEnumValue(LocationEnum);
+  study.location = [pickRandomEnumValue(LocationEnum)];
   study.hostId = host;
   study.capacity = rand(5, 11);
   study.membersCount = rand(1, 11);

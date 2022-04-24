@@ -18,7 +18,7 @@ import { createStudyNoti } from '../notification';
 export const schedules: { [key: string]: schedule.Job } = {};
 
 const countAllStudy = async (paginationDto: paginationDTO) => {
-  const { categoryCode, frequencyFilter, weekdayFilter, locationFilter } =
+  const { categoryCode, weekdayFilter, frequencyFilter, locationFilter } =
     paginationDto;
 
   const query = await getRepository(Study).createQueryBuilder('study');
@@ -30,20 +30,27 @@ const countAllStudy = async (paginationDto: paginationDTO) => {
   if (frequencyFilter) {
     query.andWhere('study.frequency = :frequencyFilter', { frequencyFilter });
   }
-  if (weekdayFilter) {
-    query.andWhere('study.weekday = :weekdayFilter', { weekdayFilter });
+  // FIX
+  /*
+  if (weekdayFilter && weekdayFilter.length) {
+    weekdayFilter.forEach((weekday) => {
+      query.andWhere(':weekday = ANY(study.weekday)', { weekday });
+    });
   }
-  if (locationFilter) {
-    query.andWhere('study.location = :locationFilter', { locationFilter });
+  if (locationFilter && locationFilter.length) {
+    locationFilter.forEach((location) => {
+      query.andWhere(':location = ANY(study.location)', { location });
+    });
   }
+  */
   return await query.getCount();
 };
 
 const getAllStudy = async (paginationDTO: paginationDTO) => {
   const {
     categoryCode,
-    frequencyFilter,
     weekdayFilter,
+    frequencyFilter,
     locationFilter,
     hideCloseTag,
     orderBy,
@@ -52,20 +59,13 @@ const getAllStudy = async (paginationDTO: paginationDTO) => {
   } = paginationDTO;
   const offset = (pageNo - 1) * limit;
 
-  let sq;
-  if (hideCloseTag) {
-    // on
-    sq = getRepository(Study)
-      .createQueryBuilder('study')
-      .leftJoinAndSelect('study.hostId', 'user');
-  } else {
+  const sq = getRepository(Study)
+    .createQueryBuilder('study')
+    .leftJoinAndSelect('study.hostId', 'user');
+  if (!hideCloseTag) {
     // off
-    sq = getRepository(Study)
-      .createQueryBuilder('study')
-      .addSelect('study.dueDate')
-      .leftJoinAndSelect('study.hostId', 'user');
+    sq.addSelect('study.dueDate');
   }
-
   if (categoryCode) {
     sq.andWhere('study.categoryCode = :categoryCode', { categoryCode });
   }
@@ -73,12 +73,19 @@ const getAllStudy = async (paginationDTO: paginationDTO) => {
   if (frequencyFilter) {
     sq.andWhere('study.frequency = :frequencyFilter', { frequencyFilter });
   }
-  if (weekdayFilter) {
-    sq.andWhere('study.weekday = :weekdayFilter', { weekdayFilter });
+  // FIX
+  /*
+  if (weekdayFilter && weekdayFilter.length) {
+    weekdayFilter.forEach((weekday) => {
+      sq.andWhere(':weekday = ANY(study.weekday)', { weekday });
+    });
   }
-  if (locationFilter) {
-    sq.andWhere('study.location = :locationFilter', { locationFilter });
+  if (locationFilter && locationFilter.length) {
+    locationFilter.forEach((location) => {
+      sq.andWhere(':location = ANY(study.location)', { location });
+    });
   }
+  */
 
   if (orderBy === orderByEnum.LATEST) {
     sq.orderBy('study.createdAt', 'DESC');
@@ -240,7 +247,7 @@ const checkStudyById = async (id: string) => {
 };
 
 const searchStudy = async (searchStudyDTO: searchStudyDTO) => {
-  const { keyword, frequencyFilter, weekdayFilter, locationFilter, orderBy } =
+  const { keyword, weekdayFilter, frequencyFilter, locationFilter, orderBy } =
     searchStudyDTO;
 
   const query = getRepository(Study)
@@ -260,12 +267,19 @@ const searchStudy = async (searchStudyDTO: searchStudyDTO) => {
   if (frequencyFilter) {
     query.andWhere('study.frequency = :frequencyFilter', { frequencyFilter });
   }
-  if (weekdayFilter) {
-    query.andWhere('study.weekday = :weekdayFilter', { weekdayFilter });
+  // FIX
+  /*
+  if (weekdayFilter && weekdayFilter.length) {
+    weekdayFilter.forEach((weekday) => {
+      query.andWhere(':weekday = ANY(study.weekday)', { weekday });
+    });
   }
-  if (locationFilter) {
-    query.andWhere('study.location = :locationFilter', { locationFilter });
+  if (locationFilter && locationFilter.length) {
+    locationFilter.forEach((location) => {
+      query.andWhere(':location = ANY(study.location)', { location });
+    });
   }
+  */
 
   if (orderBy === orderByEnum.LATEST) {
     query.orderBy('study.createdAt', 'DESC');
