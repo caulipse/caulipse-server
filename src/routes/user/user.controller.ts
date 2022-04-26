@@ -200,7 +200,7 @@ export default {
           .json({ message: '사용 가능한 이메일입니다.', data: true });
       }
     } catch (err) {
-      if ((e as Error).message === BAD_REQUEST) {
+      if ((err as Error).message === BAD_REQUEST) {
         return res.status(400).json({ message: BAD_REQUEST });
       } else {
         res.json({
