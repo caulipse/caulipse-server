@@ -182,8 +182,13 @@ export default {
     }
   },
   async getEmailDuplicate(req: Request, res: Response) {
+    const BAD_REQUEST = '요청값이 유효하지 않음';
+
     try {
       const email = req.query.email as string;
+
+      if (!email) throw new Error(BAD_REQUEST);
+
       const result = await findUserByEmail(email);
       if (result) {
         return res
@@ -195,8 +200,13 @@ export default {
           .json({ message: '사용 가능한 이메일입니다.', data: true });
       }
     } catch (err) {
-      console.error(err);
-      res.json({ error: (err as Error).message || (err as Error).toString() });
+      if ((e as Error).message === BAD_REQUEST) {
+        return res.status(400).json({ message: BAD_REQUEST });
+      } else {
+        res.json({
+          error: (err as Error).message || (err as Error).toString(),
+        });
+      }
     }
   },
 };
