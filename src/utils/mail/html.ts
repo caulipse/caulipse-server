@@ -66,10 +66,7 @@ const _link = (id: string, token: string) =>
     styles: [['text-decoration', 'none']],
     children: [_button()],
     attr: [
-      [
-        'href',
-        `https://github.com/caulipse/caulipse-server?id=${id}&token=${token}`,
-      ], // TODO: 우리 서비스 주소로 리다이렉트
+      ['href', `https://caustudy.com/signup?id=${id}&token=${token}`], // TODO: 우리 서비스 주소로 리다이렉트
       ['target', '_blank'],
     ],
   });
