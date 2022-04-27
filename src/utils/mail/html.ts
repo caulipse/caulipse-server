@@ -78,10 +78,7 @@ const _passwordResetLink = (email: string, id: string) =>
     styles: [['text-decoration', 'none']],
     children: [_button()],
     attr: [
-      [
-        'href',
-        `https://github.com/caulipse/caulipse-server?email=${email}&id=${id}`,
-      ], // TODO: 우리 서비스 주소로 리다이렉트
+      ['href', `https://caustudy.com/reset-password?email=${email}&id=${id}`], // TODO: 우리 서비스 주소로 리다이렉트
       ['target', '_blank'],
     ],
   });
