@@ -326,8 +326,8 @@ export const increaseMemberCount = async (studyId: string) => {
     .createQueryBuilder()
     .update()
     .set({
-      membersCount: () => 'membersCount + 1',
-      vacancy: () => 'vacancy - 1',
+      membersCount: () => 'MEMBERS_COUNT + 1',
+      vacancy: () => 'VACANCY - 1',
     })
     .where('ID = :id', { id: studyId })
     .execute();

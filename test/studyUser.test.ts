@@ -66,7 +66,7 @@ beforeAll(async () => {
   mockStudy.isOpen = true;
   mockStudy.views = 0;
   mockStudy.bookmarkCount = 0;
-  mockStudy.dueDate = new Date(date.getTime() + 60 * 60 * 5);
+  mockStudy.dueDate = new Date(date.getTime() + 60 * 60 * 5).toString();
 
   await conn.getRepository(Study).save(mockStudy);
 });
@@ -127,7 +127,7 @@ describe('참가신청 api', () => {
 
     // when
     const res = await request(app)
-      .post(`/api/study/user/${studyId}`)
+      .post(`/api/study/${studyId}/user`)
       .set('Cookie', cookies)
       .send({ tempBio });
     const record = await conn
@@ -159,7 +159,7 @@ describe('참가신청 api', () => {
 
     // when
     const res = await request(app)
-      .post(`/api/study/user/${studyId}`)
+      .post(`/api/study/${studyId}/user`)
       .set('Cookie', cookies)
       .send();
     const record = await conn
@@ -187,7 +187,7 @@ describe('참가신청 api', () => {
 
     // when
     const res = await request(app)
-      .post(`/api/study/user/${studyId}`)
+      .post(`/api/study/${studyId}/user`)
       .send({ tempBio });
     const record = await conn
       .getRepository(StudyUser)
@@ -219,7 +219,7 @@ describe('참가신청 api', () => {
 
     // when
     const res = await request(app)
-      .post(`/api/study/user/${wrongStudyId}`)
+      .post(`/api/study/${wrongStudyId}/user`)
       .set('Cookie', cookies)
       .send({ tempBio });
     const record = await conn
@@ -238,7 +238,7 @@ describe('참가신청 수락대기중인 사용자 목록 조회 api', () => {
   const userId = randomUUID();
 
   test('로그인 하지 않았을 경우 401 코드로 응답한다', async () => {
-    const res = await request(app).get(`/api/study/user/${studyId}`);
+    const res = await request(app).get(`/api/study/${studyId}/user`);
     expect(res.statusCode).toBe(401);
   });
 
@@ -258,7 +258,7 @@ describe('참가신청 수락대기중인 사용자 목록 조회 api', () => {
     const wrongStudyId = 'asdjfalksdj';
 
     const res = await request(app)
-      .get(`/api/study/user/${wrongStudyId}`)
+      .get(`/api/study/${wrongStudyId}/user`)
       .set('Cookie', cookies);
 
     expect(res.statusCode).toBe(404);
@@ -273,7 +273,7 @@ describe('참가신청 수락대기중인 사용자 목록 조회 api', () => {
 
     // when
     const res = await request(app)
-      .get(`/api/study/user/${studyId}`)
+      .get(`/api/study/${studyId}/user`)
       .set('Cookie', cookies);
 
     // then
@@ -314,7 +314,7 @@ describe('참가신청 수락대기중인 사용자 목록 조회 api', () => {
         isOpen: true,
         views: 0,
         bookmarkCount: 0,
-        dueDate: new Date(date.getTime() + 60 * 60 * 5),
+        dueDate: new Date(date.getTime() + 60 * 60 * 5).toString(),
       })
       .execute();
 
@@ -325,7 +325,7 @@ describe('참가신청 수락대기중인 사용자 목록 조회 api', () => {
 
     // when
     const res = await request(app)
-      .get(`/api/study/user/${myStudyId}`)
+      .get(`/api/study/${myStudyId}/user`)
       .set('Cookie', cookies);
 
     // then
@@ -353,7 +353,7 @@ describe('참가신청 수락대기중인 사용자 목록 조회 api', () => {
     const cookies = loginRes.headers['set-cookie'];
 
     const res = await request(app)
-      .get(`/api/study/user/${studyId}`)
+      .get(`/api/study/${studyId}/user`)
       .set('Cookie', cookies);
 
     expect(res.statusCode).toBe(200);
@@ -366,7 +366,7 @@ describe('참가신청 수락대기중인 사용자 목록 조회 api', () => {
 describe('참가인원 조회 api', () => {
   test('로그인하지 않아도 401 코드로 응답하지 않는다', async () => {
     const res = await request(app)
-      .get(`/api/study/user/${studyId}/participants`)
+      .get(`/api/study/${studyId}/user/participants`)
       .send();
     expect(res.statusCode).not.toBe(401);
   });
@@ -377,7 +377,7 @@ describe('참가인원 조회 api', () => {
 
     // when
     const res = await request(app)
-      .get(`/api/study/user/${wrongStudyId}/participants`)
+      .get(`/api/study/${wrongStudyId}/user/participants`)
       .send();
 
     // then
@@ -402,12 +402,12 @@ describe('참가인원 조회 api', () => {
     study.isOpen = true;
     study.views = 0;
     study.bookmarkCount = 0;
-    study.dueDate = new Date(date.getTime() + 60 * 60 * 5);
+    study.dueDate = new Date(date.getTime() + 60 * 60 * 5).toString();
     await conn.getRepository(Study).save(study);
 
     // when
     const res = await request(app)
-      .get(`/api/study/user/${study.id}/participants`)
+      .get(`/api/study/${study.id}/user/participants`)
       .send();
 
     // then
@@ -439,7 +439,7 @@ describe('참가인원 조회 api', () => {
 
     // when
     const res = await request(app)
-      .get(`/api/study/user/${studyId}/participants`)
+      .get(`/api/study/${studyId}/user/participants`)
       .send();
 
     // then
@@ -452,7 +452,7 @@ describe('참가인원 조회 api', () => {
 describe('참가신청 수락/거절 api', () => {
   test('로그인하지 않았을 경우 401 코드로 응답한다', async () => {
     const res = await request(app)
-      .patch(`/api/study/user/${studyId}/accept`)
+      .patch(`/api/study/${studyId}/user/accept`)
       .send();
     expect(res.statusCode).toBe(401);
   });
@@ -468,7 +468,7 @@ describe('참가신청 수락/거절 api', () => {
 
     // when
     const res = await request(app)
-      .patch(`/api/study/user/${studyId}/accept`)
+      .patch(`/api/study/${studyId}/user/accept`)
       .set('Cookie', cookies)
       .send();
 
@@ -487,7 +487,7 @@ describe('참가신청 수락/거절 api', () => {
 
     // when
     const res = await request(app)
-      .patch(`/api/study/user/${studyId}/accept`)
+      .patch(`/api/study/${studyId}/user/accept`)
       .set('Cookie', cookies)
       .send({ accept: true, userId: mockUser1.id }); // README: 스터디 신청현황 테스트에서 mockUser1의 mockStudy에 대한 참가신청을 진행함
 
@@ -507,7 +507,7 @@ describe('참가신청 수락/거절 api', () => {
 
     // when
     const res = await request(app)
-      .patch(`/api/study/user/${wrongStudyId}/accept`)
+      .patch(`/api/study/${wrongStudyId}/user/accept`)
       .set('Cookie', cookies)
       .send({ accept: true, userId: mockUser1.id }); // README: 스터디 신청현황 테스트에서 mockUser1의 mockStudy에 대한 참가신청을 진행함
 
@@ -526,7 +526,7 @@ describe('참가신청 수락/거절 api', () => {
 
     // when
     const res = await request(app)
-      .patch(`/api/study/user/${studyId}/accept`)
+      .patch(`/api/study/${studyId}/user/accept`)
       .set('Cookie', cookies)
       .send({ accept: true, userId: mockUser2.id }); // README: 스터디 신청현황 테스트에서 mockUser1의 mockStudy에 대한 참가신청을 진행함
 
@@ -545,7 +545,7 @@ describe('참가신청 수락/거절 api', () => {
 
     // when
     const res = await request(app)
-      .patch(`/api/study/user/${studyId}/accept`)
+      .patch(`/api/study/${studyId}/user/accept`)
       .set('Cookie', cookies)
       .send({ accept: true, userId: mockUser1.id }); // README: 스터디 신청현황 테스트에서 mockUser1의 mockStudy에 대한 참가신청을 진행함
     const record = await conn
@@ -564,7 +564,7 @@ describe('참가신청 수락/거절 api', () => {
 
 describe('스터디 참가신청 수정 api', () => {
   test('로그인하지 않았을 경우 401 코드로 응답한다', async () => {
-    const res = await request(app).patch(`/api/study/user/${studyId}`).send();
+    const res = await request(app).patch(`/api/study/${studyId}/user`).send();
     expect(res.statusCode).toBe(401);
   });
 
@@ -579,7 +579,7 @@ describe('스터디 참가신청 수정 api', () => {
 
     // when
     const res = await request(app)
-      .patch(`/api/study/user/${studyId}`)
+      .patch(`/api/study/${studyId}/user`)
       .set('Cookie', cookies)
       .send();
 
@@ -599,7 +599,7 @@ describe('스터디 참가신청 수정 api', () => {
 
     // when
     const res = await request(app)
-      .patch(`/api/study/user/${wrongStudyId}`)
+      .patch(`/api/study/${wrongStudyId}/user`)
       .set('Cookie', cookies)
       .send({ tempBio: 'updatedTempBio' });
 
@@ -618,7 +618,7 @@ describe('스터디 참가신청 수정 api', () => {
 
     // when
     const res = await request(app)
-      .patch(`/api/study/user/${studyId}`)
+      .patch(`/api/study/${studyId}/user`)
       .set('Cookie', cookies)
       .send({ tempBio: 'updatedTempBio' }); // README: 스터디 신청현황 테스트에서 mockUser1의 mockStudy에 대한 참가신청을 진행함
 
@@ -638,7 +638,7 @@ describe('스터디 참가신청 수정 api', () => {
 
     // when
     const res = await request(app)
-      .patch(`/api/study/user/${studyId}`)
+      .patch(`/api/study/${studyId}/user`)
       .set('Cookie', cookies)
       .send({ tempBio: updatedTempBio }); // README: 스터디 신청현황 테스트에서 mockUser1의 mockStudy에 대한 참가신청을 진행함
     const record = await conn
@@ -657,7 +657,9 @@ describe('스터디 참가신청 수정 api', () => {
 
 describe('스터디 참가신청 취소 api', () => {
   test('로그인하지 않았을 경우 401 코드로 응답한다', async () => {
-    const res = await request(app).delete(`/api/study/user/${studyId}`);
+    const res = await request(app).delete(
+      `/api/study/${studyId}/user/${mockUser1.id}`
+    );
     expect(res.statusCode).toBe(401);
   });
 
@@ -673,7 +675,7 @@ describe('스터디 참가신청 취소 api', () => {
 
     // when
     const res = await request(app)
-      .delete(`/api/study/user/${wrongStudyId}`)
+      .delete(`/api/study/${wrongStudyId}/user/${mockUser1.id}`)
       .set('Cookie', cookies);
 
     // then
@@ -691,7 +693,7 @@ describe('스터디 참가신청 취소 api', () => {
 
     // when
     const res = await request(app)
-      .delete(`/api/study/user/${studyId}`)
+      .delete(`/api/study/${studyId}/user/${mockUser2.id}`)
       .set('Cookie', cookies);
 
     // then
@@ -719,7 +721,7 @@ describe('스터디 참가신청 취소 api', () => {
     // when
     const before = await query();
     const res = await request(app)
-      .delete(`/api/study/user/${studyId}`)
+      .delete(`/api/study/${studyId}/user/${mockUser1.id}`)
       .set('Cookie', cookies);
     const after = await query();
 

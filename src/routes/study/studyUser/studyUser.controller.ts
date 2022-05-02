@@ -94,11 +94,16 @@ export default {
       const userId = (req.user as { id: string }).id;
       if (!tempBio) throw new Error(BAD_REQUEST);
 
-      await saveStudyUserRecord({
-        userId,
-        studyId: studyid,
-        tempBio,
-      });
+      try {
+        await saveStudyUserRecord({
+          userId,
+          studyId: studyid,
+          tempBio,
+        });
+      } catch (err) {
+        res.status(404).json({ message: NOT_FOUND });
+        return;
+      }
 
       const study = await studyService.findStudyById(studyid);
       if (!study) {
@@ -124,6 +129,7 @@ export default {
       } else if ((e as Error).message === NOT_FOUND) {
         res.status(404).json({ message: NOT_FOUND });
       } else {
+        console.log((e as Error).toString());
         res.status(500).json({ message: 'error' });
       }
     }
@@ -217,9 +223,10 @@ export default {
         throw new Error(FORBIDDEN);
 
       if (isDeletedByHost) {
-        updateAcceptStatus(studyid, targetUserId, false);
+        await updateAcceptStatus(studyid, targetUserId, false);
       } else {
-        deleteByStudyAndUserId(studyid, targetUserId);
+        const result = await deleteByStudyAndUserId(studyid, targetUserId);
+        if (result.affected === 0) throw new Error(NOT_FOUND);
       }
       res.json({ message: OK });
 
