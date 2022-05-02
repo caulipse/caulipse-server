@@ -7,7 +7,7 @@ import {
   updateAcceptStatus,
   updateUserTempBio,
 } from '../../../services/studyUser';
-import studyService from '../../../services/study';
+import studyService, { findStudyByHostId } from '../../../services/study';
 import { findUserProfileById } from '../../../services/user/profile';
 import { createStudyNoti } from '../../../services/notification';
 
@@ -199,14 +199,29 @@ export default {
     }
   },
   async deleteStudyJoin(req: Request, res: Response) {
-    const NOT_FOUND = '일치하는 참가신청이 없음';
+    const OK = '참가신청 취소 성공';
+    const BAD_REQUEST = '요청 url에 스터디id 와 대상 사용자id 가 없음';
+    const FORBIDDEN = '삭제 권한 없음';
+    const NOT_FOUND = '삭제 대상 참가신청이 존재하지 않음';
 
     try {
-      const { studyid } = req.params;
+      const { studyid, userid: targetUserId } = req.params;
+      if (!studyid || !targetUserId) throw new Error(BAD_REQUEST);
       const userId = (req.user as { id: string }).id;
 
-      const result = await deleteByStudyAndUserId(studyid, userId);
-      if (result.affected === 0) throw new Error(NOT_FOUND);
+      const study = await studyService.findStudyById(studyid);
+      if (!study) throw new Error(NOT_FOUND);
+
+      const isDeletedByHost = study.HOST_ID === userId;
+      if (userId !== targetUserId && isDeletedByHost)
+        throw new Error(FORBIDDEN);
+
+      if (isDeletedByHost) {
+        updateAcceptStatus(studyid, targetUserId, false);
+      } else {
+        deleteByStudyAndUserId(studyid, targetUserId);
+      }
+      res.json({ message: OK });
 
       // 호스트가 참가신청 취소해버린 경우
       /*
@@ -216,11 +231,11 @@ export default {
         await createStudyNoti(studyid, userId, notiTitle, notiAbout, 106);
       }
       */
-
-      res.json({ message: '참가신청 취소 성공' });
     } catch (e) {
       const err = e as Error;
-      if (err.message === NOT_FOUND) {
+      if (err.message === BAD_REQUEST) {
+        res.status(400).json({ message: BAD_REQUEST });
+      } else if (err.message === NOT_FOUND) {
         res.status(404).json({ message: NOT_FOUND });
       } else {
         res.status(500).json({ message: 'error' });
@@ -398,6 +413,7 @@ export default {
  *                  type: string
  *                  example: "일치하는 studyid가 없음"
  *
+ * /api/study/{studyid}/user/{userid}:
  *     delete:
  *       tags:
  *       - study/user
@@ -407,6 +423,12 @@ export default {
  *       - in: "path"
  *         name: "studyid"
  *         description: "참가신청을 취소할 스터디의 id"
+ *         required: true
+ *         type: string
+ *         format: uuid
+ *       - in: "path"
+ *         name: "userid"
+ *         description: "참가신청을 취소할 사용자의 id"
  *         required: true
  *         type: string
  *         format: uuid
@@ -428,14 +450,22 @@ export default {
  *               message:
  *                 type: string
  *                 example: "로그인이 필요한 서비스입니다"
- *         404:
- *           description: "존재하지 않는 스터디 id 이거나 사용자가 스터디에 참가신청을 하지 않은 경우입니다."
+ *         403:
+ *           description: "신청자 본인 또는 스터디 호스트가 아닌 사용자가 취소를 시도한경우"
  *           schema:
  *             type: object
  *             properties:
  *               message:
  *                 type: string
- *                 example: "일치하는 studyid가 없음"
+ *                 example: "삭제 권한 없음"
+ *         404:
+ *           description: "삭제 대상 참가신청이 없는 경우입니다"
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ *                 example: "삭제 대상 참가신청이 없음"
  *
  * /api/study/user/{studyid}/participants:
  *   get:

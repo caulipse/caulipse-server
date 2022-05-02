@@ -20,7 +20,7 @@ router.get('/my-study', checkToken, controller.getMyStudy);
 router.patch('/:studyid/close', checkToken, controller.closeStudy);
 
 // 스터디 참가 신청 라우터
-router.use('/user/:studyid', studyUserRouter);
+router.use('/:studyid/user', studyUserRouter);
 // 스터디 북마크 라우터
 router.use('/:studyid/bookmark', checkToken, bookmarkRouter);
 // 스터디 문의글 라우터

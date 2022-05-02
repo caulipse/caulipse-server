@@ -342,6 +342,14 @@ export const closeStudy = async (study: Study) => {
   return await getRepository(Study).save(study);
 };
 
+export const findStudyByHostId = async (hostId: string) => {
+  return getRepository(Study)
+    .createQueryBuilder()
+    .select()
+    .where('HOST_ID = :id', { id: hostId })
+    .execute();
+};
+
 export default {
   countAllStudy,
   getAllStudy,
@@ -356,4 +364,5 @@ export default {
   decreaseMemberCount,
   increaseMemberCount,
   closeStudy,
+  findStudyByHostId,
 };
