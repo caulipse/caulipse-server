@@ -66,7 +66,7 @@ beforeAll(async () => {
   mockStudy.isOpen = true;
   mockStudy.views = 0;
   mockStudy.bookmarkCount = 0;
-  mockStudy.dueDate = new Date(date.getTime() + 60 * 60 * 5).toString();
+  mockStudy.dueDate = new Date(date.getTime() + 60 * 60 * 5);
 
   await conn.getRepository(Study).save(mockStudy);
 });
@@ -402,7 +402,7 @@ describe('참가인원 조회 api', () => {
     study.isOpen = true;
     study.views = 0;
     study.bookmarkCount = 0;
-    study.dueDate = new Date(date.getTime() + 60 * 60 * 5).toString();
+    study.dueDate = new Date(date.getTime() + 60 * 60 * 5);
     await conn.getRepository(Study).save(study);
 
     // when
