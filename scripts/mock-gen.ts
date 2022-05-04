@@ -67,9 +67,24 @@ function makeUser(idx: number): User {
   return user;
 }
 
+function makeAdmin(idx: number): User {
+  const user = new User();
+  user.id = randomUUID();
+  user.email = `adminno${idx}@cau.ac.kr`;
+  user.password = bcrypt.hashSync(`password${idx}`, 10);
+  user.token = '';
+  user.role = UserRoleEnum.ADMIN;
+  user.isLogout = false;
+  return user;
+}
+
 const users = Array(50)
   .fill(0)
   .map((_, i) => makeUser(i));
+
+const admins = Array(3)
+  .fill(0)
+  .map((_, i) => makeAdmin(i));
 
 /******************************************************************************
  * UserProfile table
@@ -95,6 +110,7 @@ function makeUserProfile(idx: number, user: User): UserProfile {
 }
 
 const userProfiles = users.map((user, i) => makeUserProfile(i, user));
+const adminProfiles = admins.map((user, i) => makeUserProfile(i, user));
 
 /******************************************************************************
  * Study table
@@ -173,12 +189,9 @@ function makeNotice(idx: number, user: UserProfile): Notice {
   return notice;
 }
 
-const admins = userProfiles.filter(
-  (user) => user.id.role === UserRoleEnum.ADMIN
-);
 const notices = Array(30)
   .fill(0)
-  .map((_, i) => makeNotice(i, pickRandomArrayValue(admins)));
+  .map((_, i) => makeNotice(i, pickRandomArrayValue(adminProfiles)));
 
 /******************************************************************************
  * Comment table
@@ -320,6 +333,7 @@ for (let i = 0; notifications.length < 100; i++) {
         isLogout: false,
       },
       ...users,
+      ...admins,
     ])
     .execute();
   console.log('DONE!');
@@ -333,6 +347,12 @@ for (let i = 0; notifications.length < 100; i++) {
     .createQueryBuilder()
     .insert()
     .values(userProfiles)
+    .execute();
+  await conn
+    .getRepository(UserProfile)
+    .createQueryBuilder()
+    .insert()
+    .values(adminProfiles)
     .execute();
   console.log('DONE!');
 
