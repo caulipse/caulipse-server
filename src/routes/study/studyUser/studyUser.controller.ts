@@ -228,6 +228,8 @@ export default {
         const result = await deleteByStudyAndUserId(studyid, targetUserId);
         if (result.affected === 0) throw new Error(NOT_FOUND);
       }
+
+      await studyService.decreaseMemberCount(studyid);
       res.json({ message: OK });
 
       // 호스트가 참가신청 취소해버린 경우
