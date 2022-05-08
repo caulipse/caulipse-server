@@ -548,7 +548,7 @@ export default {
  *               type: string
  *               example: "참가신청 현황 수정 성공"
  *       400:
- *         description: "요청값이 유효하지 않은 경우입니다"
+ *         description: "요청값이 유효하지 않은 경우입니다. 요청 body 안에 userId 또는 accept 프로퍼티가 없거나 정원이 모두 찬 스터디의 참가신청을 수락한 경우가 해당합니다."
  *         schema:
  *           type: object
  *           properties:
