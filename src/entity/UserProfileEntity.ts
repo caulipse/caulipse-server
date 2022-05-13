@@ -57,13 +57,13 @@ export default class UserProfile {
   @Column('simple-array', { name: 'USER_INTEREST_CATEGORY' })
   categories!: string[];
 
-  @Column({ name: 'LINK1' })
+  @Column({ name: 'LINK1', type: 'longtext' })
   link1!: string;
 
-  @Column({ name: 'LINK2' })
+  @Column({ name: 'LINK2', type: 'longtext' })
   link2!: string;
 
-  @Column({ name: 'LINK3' })
+  @Column({ name: 'LINK3', type: 'longtext' })
   link3!: string;
 
   @Column({ name: 'IMAGE' })
