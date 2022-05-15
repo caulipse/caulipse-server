@@ -258,7 +258,7 @@ export default {
 
 /**
  * @swagger
- * /api/study/user/{studyid}:
+ * /api/study/{studyid}/user:
  *     get:
  *       tags:
  *       - study/user
@@ -479,7 +479,7 @@ export default {
  *                 type: string
  *                 example: "삭제 대상 참가신청이 없음"
  *
- * /api/study/user/{studyid}/participants:
+ * /api/study/{studyid}/user/participants:
  *   get:
  *     tags:
  *     - study/user
@@ -511,7 +511,7 @@ export default {
  *               type: string
  *               example: "일치하는 studyid가 없음"
  *
- * /api/study/user/{studyid}/accept:
+ * /api/study/{studyid}/user/accept:
  *   patch:
  *     tags:
  *     - study/user
