@@ -24,6 +24,10 @@ export default {
       const { email, password } = req.body;
       if (!email || !password)
         throw new Error('no email or password in request body');
+
+      const user = await findUserByEmail(email);
+      if (user) throw new Error('이미 가입된 유저입니다');
+
       const isValidEmail = validateCAU(email);
       if (!isValidEmail)
         throw new Error('중앙대 이메일로만 가입할 수 있습니다');
