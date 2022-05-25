@@ -3,6 +3,7 @@ dotenv.config();
 
 import { randomUUID } from 'crypto';
 import bcrypt from 'bcrypt';
+import { sha256 } from 'js-sha256';
 import { createConnection } from 'typeorm';
 import Study, {
   FrequencyEnum,
@@ -60,7 +61,7 @@ function makeUser(idx: number): User {
   const user = new User();
   user.id = randomUUID();
   user.email = `userno${idx}@cau.ac.kr`;
-  user.password = bcrypt.hashSync(`password${idx}`, 10);
+  user.password = bcrypt.hashSync(sha256(`password${idx}`), 10);
   user.token = '';
   user.role = UserRoleEnum.USER;
   user.isLogout = false;
@@ -71,7 +72,7 @@ function makeAdmin(idx: number): User {
   const user = new User();
   user.id = randomUUID();
   user.email = `adminno${idx}@cau.ac.kr`;
-  user.password = bcrypt.hashSync(`password${idx}`, 10);
+  user.password = bcrypt.hashSync(sha256(`password${idx}`), 10);
   user.token = '';
   user.role = UserRoleEnum.ADMIN;
   user.isLogout = false;
@@ -276,8 +277,7 @@ for (let i = 0; notifications.length < 100; i++) {
       {
         id: '28464dc7-7537-4b91-9d52-764b6de32122',
         email: 'testadmin1@cau.ac.kr',
-        password:
-          '$2b$10$18n8DFDZ1QUrhBlf9CDr6O8LiN7cjIRAFX37HfK.SpnyJg1y7c.5K',
+        password: bcrypt.hashSync(sha256('testadmin1'), 10),
         token: '',
         role: UserRoleEnum.ADMIN,
         isLogout: false,
@@ -286,8 +286,7 @@ for (let i = 0; notifications.length < 100; i++) {
       {
         id: 'dea61890-363d-4574-8ad1-ef1fa6fe66db',
         email: 'testadmin2@cau.ac.kr',
-        password:
-          '$2b$10$jsUh3x5kvMfBECfEoiq15.hRnhtrVLRCid2d2r8tMQTtCa6ILNr/u',
+        password: bcrypt.hashSync(sha256('testadmin2'), 10),
         token: '',
         role: UserRoleEnum.ADMIN,
         isLogout: false,
@@ -296,8 +295,7 @@ for (let i = 0; notifications.length < 100; i++) {
       {
         id: '9b083624-9475-4ad2-b5c0-eb40c98411c2',
         email: 'testuser1@cau.ac.kr',
-        password:
-          '$2b$10$xtp6zwK8.0FqRrq4okZRXOcTkH9oCXhA8X02NJaAXgPockMw9ZFWi',
+        password: bcrypt.hashSync(sha256('testuser1'), 10),
         token: '',
         role: UserRoleEnum.USER,
         isLogout: false,
@@ -306,8 +304,7 @@ for (let i = 0; notifications.length < 100; i++) {
       {
         id: 'ec7283be-d2e5-4b39-b723-1cfa000a9303',
         email: 'testuser2@cau.ac.kr',
-        password:
-          '$2b$10$Ls2oCM/bHbss5S18VyWgB.R2jet9xdATWFU8ZdNXZ3JR7PjAoXdwy',
+        password: bcrypt.hashSync(sha256('testuser2'), 10),
         token: '',
         role: UserRoleEnum.USER,
         isLogout: false,
@@ -316,8 +313,7 @@ for (let i = 0; notifications.length < 100; i++) {
       {
         id: 'cd915b33-d4c3-4379-b5c1-fe8d389b0de7',
         email: 'testguest1@cau.ac.kr',
-        password:
-          '$2b$10$f69XmMM3DPKDs91.6qgmOebP/bfrdKcCQNQG/ldl71GXet3BYBjEq',
+        password: bcrypt.hashSync(sha256('testguest1'), 10),
         token: '',
         role: UserRoleEnum.GUEST,
         isLogout: false,
@@ -326,8 +322,7 @@ for (let i = 0; notifications.length < 100; i++) {
       {
         id: '492a437d-14ca-4e15-9347-0748ba14e269',
         email: 'testguest2@cau.ac.kr',
-        password:
-          '$2b$10$sGJji6iVcZc/JJTq/cpFcukB3YXwUSbsygBFmKVJvw6QRmhpVPV0m',
+        password: bcrypt.hashSync(sha256('testguest2'), 10),
         token: '',
         role: UserRoleEnum.GUEST,
         isLogout: false,
