@@ -7,7 +7,7 @@ import {
   updateAcceptStatus,
   updateUserTempBio,
 } from '../../../services/studyUser';
-import studyService, { findStudyByHostId } from '../../../services/study';
+import studyService from '../../../services/study';
 import { findUserProfileById } from '../../../services/user/profile';
 import { createStudyNoti, NotiTypeEnum } from '../../../services/notification';
 
@@ -18,27 +18,27 @@ export default {
   async getStudyParticipants(req: Request, res: Response) {
     const NOT_FOUND = '일치하는 studyid 가 없음';
 
-    let study;
     try {
-      study = await studyService.findStudyById(req.params.studyid);
+      const study = await studyService.findStudyById(req.params.studyid);
       if (!study) throw new Error(NOT_FOUND);
-    } catch (e) {
-      res.status(404).json({ message: NOT_FOUND });
-      return;
-    }
 
-    try {
       const result = await findAcceptedByStudyId(req.params.studyid);
       res.json(
         result.map((record: Record<string, string | boolean>) => ({
-          studyId: record.StudyUser_STUDY_ID,
-          userId: record.StudyUser_USER_ID,
-          isAccepted: record.StudyUser_IS_ACCEPTED,
-          tempBio: record.StudyUser_TEMP_BIO,
+          studyId: record.STUDY_ID,
+          userId: record.USER_ID,
+          tempBio: record.TEMP_BIO,
+          username: record.USER_NAME,
+          image: record.IMAGE,
         }))
       );
     } catch (e) {
-      res.status(500).json({ message: 'error' });
+      const err = e as Error;
+      if (err.message === NOT_FOUND) {
+        res.status(404).json({ message: NOT_FOUND });
+      } else {
+        res.status(500).json({ message: 'error' });
+      }
     }
   },
   /**
@@ -48,16 +48,10 @@ export default {
     const NOT_FOUND = '일치하는 studyid 가 없음';
     const FORBIDDEN = '사용자 권한 부족';
 
-    let study;
     try {
-      study = await studyService.findStudyById(req.params.studyid);
+      const study = await studyService.findStudyById(req.params.studyid);
       if (!study) throw new Error(NOT_FOUND);
-    } catch (e) {
-      res.status(404).json({ message: NOT_FOUND });
-      return;
-    }
 
-    try {
       const userId = (req.user as { id: string }).id;
       const hasAuthority = study?.HOST_ID === userId;
 
@@ -78,6 +72,8 @@ export default {
       const err = e as Error;
       if (err.message === FORBIDDEN) {
         res.status(403).json({ message: FORBIDDEN });
+      } else if (err.message === NOT_FOUND) {
+        res.status(404).json({ message: NOT_FOUND });
       } else {
         res.status(500).json({ message: 'error ' });
       }
