@@ -54,12 +54,21 @@ export const findAllIfParticipatedByUserId = async (userId: string) => {
  * 참가신청이 수락된 사용자 목록 조회(참여자 조회)
  */
 export const findAcceptedByStudyId = async (studyId: string) => {
-  return await getRepository(StudyUser)
-    .createQueryBuilder()
-    .select()
-    .where('STUDY_ID = :id', { id: studyId })
-    .andWhere('IS_ACCEPTED = 1')
-    .execute();
+  return await getConnection()
+    .createQueryRunner()
+    .query(
+      'SELECT \
+        STUDY_USER.STUDY_ID, STUDY_USER.USER_ID, STUDY_USER.TEMP_BIO, \
+        USER_PROFILE.USER_NAME, USER_PROFILE.IMAGE \
+      FROM STUDY_USER \
+      JOIN \
+        USER_PROFILE ON \
+        STUDY_USER.USER_ID = USER_PROFILE.USER_ID \
+      WHERE \
+        STUDY_USER.STUDY_ID = ? \
+      AND STUDY_USER.IS_ACCEPTED = 1',
+      [studyId]
+    );
 };
 
 /**
