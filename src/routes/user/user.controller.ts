@@ -17,6 +17,7 @@ import { validateCAU } from '../../utils/mail';
 import { findAllIfParticipatedByUserId } from '../../services/studyUser';
 import { passwordResetContent, signupMailContent } from '../../utils/mail/html';
 import studyService from '../../services/study';
+import { deleteUserProfileByUserId } from '../../services/user/profile';
 
 export default {
   async saveUser(req: Request, res: Response) {
@@ -127,8 +128,10 @@ export default {
 
     try {
       const { id } = req.user as { id: string };
-      const result = await deleteUserById(id);
-      if (result.affected === 0) throw new Error(NOT_FOUND);
+      const profileDeleteResult = await deleteUserProfileByUserId(id);
+      const userDeleteResult = await deleteUserById(id);
+      if (profileDeleteResult.affected === 0 || userDeleteResult.affected === 0)
+        throw new Error(NOT_FOUND);
       res.json({ message: '회원 탈퇴 성공' });
     } catch (e) {
       if ((e as Error).message === NOT_FOUND) {

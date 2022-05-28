@@ -126,3 +126,11 @@ export const updateUserProfile = async ({
     .execute();
   return result;
 };
+
+export const deleteUserProfileByUserId = async (id: string) => {
+  return await getRepository(UserProfile)
+    .createQueryBuilder()
+    .delete()
+    .where('USER_ID = :id', { id })
+    .execute();
+};
