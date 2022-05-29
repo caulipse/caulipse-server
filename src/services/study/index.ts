@@ -8,7 +8,6 @@ import {
   studyDTO,
 } from '../../types/study.dto';
 import UserProfile from '../../entity/UserProfileEntity';
-import { schedules } from '../../routes/study/study.controller';
 
 const CATEGORY_COUNT = 7;
 
@@ -276,12 +275,8 @@ export const increaseMemberCount = async (studyId: string) => {
     .execute();
 };
 
-export const closeStudy = async (study: Study) => {
+export const updateIsOpen = async (study: Study) => {
   study.isOpen = false;
-  if (process.env.NODE_ENV !== 'test') {
-    schedules[`${study.id}`].cancel();
-    delete schedules[`${study.id}`];
-  }
   return await getRepository(Study).save(study);
 };
 
@@ -305,6 +300,6 @@ export default {
   searchStudy,
   decreaseMemberCount,
   increaseMemberCount,
-  closeStudy,
+  updateIsOpen,
   findStudyByHostId,
 };

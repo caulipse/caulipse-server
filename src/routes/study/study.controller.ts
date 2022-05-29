@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import * as schedule from 'node-schedule';
-import {
+import cron from 'node-cron';
+import Study, {
   FrequencyEnum,
   LocationEnum,
   WeekDayEnum,
@@ -19,7 +19,54 @@ import { orderByEnum } from '../../types/study.dto';
 import bookmarkService from '../../services/study/bookmark';
 import { refresh } from '../../middlewares/auth';
 
-export const schedules: { [key: string]: schedule.Job } = {};
+export const schedules: { [key: string]: cron.ScheduledTask } = {};
+export const closedschedules: string[] = [];
+
+/* 매일 자정 직후 */
+if (process.env.NODE_ENV !== 'test') {
+  cron.schedule('30 0 * * *', () => {
+    closedschedules.forEach((value) => {
+      schedules[`${value}`].stop();
+      delete schedules[`${value}`];
+    });
+    closedschedules.splice(0);
+  });
+}
+
+const scheduleJob = async (study: Study) => {
+  await studyService.updateIsOpen(study);
+  const members = await findAcceptedByStudyId(study.id);
+  members.map((record: Record<string, string | boolean>) => ({
+    userId: record.StudyUser_USER_ID,
+  }));
+  if (members.length !== 0) {
+    for (const member of members) {
+      await createStudyNoti({
+        id: study.id,
+        userId: member.userId,
+        title: '모집 종료',
+        about: `모집이 종료되었어요. 스터디를 응원합니다!`,
+        type: NotiTypeEnum.CLOSED,
+      });
+    }
+  }
+  const applicants = await findNotAcceptedApplicantsByStudyId(study.id);
+  applicants.map((record: Record<string, string | boolean>) => ({
+    userId: record.StudyUser_USER_ID,
+  }));
+  if (applicants.length !== 0) {
+    for (const user of applicants) {
+      await createStudyNoti({
+        id: study.id,
+        userId: user.userId,
+        title: '모집 종료',
+        about: '스터디의 모집이 마감되었어요.',
+        type: NotiTypeEnum.CLOSED,
+      });
+    }
+  }
+  closedschedules.push(study.id);
+};
 
 const getAllStudy = async (req: Request, res: Response) => {
   const BAD_REQUEST = '요청값이 유효하지 않음';
@@ -159,44 +206,9 @@ const createStudy = async (req: Request, res: Response) => {
       const today = new Date();
 
       if (due.getFullYear() == today.getFullYear()) {
-        schedules[`${study.id}`] = schedule.scheduleJob(
+        schedules[`${study.id}`] = cron.schedule(
           `0 0 ${due.getDate() + 1} ${due.getMonth() + 1} *`,
-          async function () {
-            await studyService.closeStudy(study);
-            const members = await findAcceptedByStudyId(study.id);
-            members.map((record: Record<string, string | boolean>) => ({
-              userId: record.StudyUser_USER_ID,
-            }));
-            if (members.length !== 0) {
-              for (const member of members) {
-                await createStudyNoti({
-                  id: study.id,
-                  userId: member.userId,
-                  title: '모집 종료',
-                  about: `모집이 종료되었어요. 스터디를 응원합니다!`,
-                  type: NotiTypeEnum.CLOSED,
-                });
-              }
-            }
-
-            const applicants = await findNotAcceptedApplicantsByStudyId(
-              study.id
-            );
-            applicants.map((record: Record<string, string | boolean>) => ({
-              userId: record.StudyUser_USER_ID,
-            }));
-            if (applicants.length !== 0) {
-              for (const user of applicants) {
-                await createStudyNoti({
-                  id: study.id,
-                  userId: user.userId,
-                  title: '모집 종료',
-                  about: '스터디의 모집이 마감되었어요.',
-                  type: NotiTypeEnum.CLOSED,
-                });
-              }
-            }
-          }
+          async () => await scheduleJob(study)
         );
       }
     }
@@ -322,14 +334,6 @@ const updateStudy = async (req: Request, res: Response) => {
     await studyService.updateStudy(req.body, study);
 
     if (process.env.NODE_ENV !== 'test') {
-      if (req.body.dueDate) {
-        const due = new Date(req.body.dueDate);
-        schedules[`${study.id}`].cancel();
-        schedules[`${study.id}`].reschedule(
-          `0 0 ${due.getDate() + 1} ${due.getMonth() + 1} *`
-        );
-      }
-
       const users = await findAllByStudyId(studyid);
       if (users.length !== 0) {
         for (const user of users) {
@@ -341,6 +345,15 @@ const updateStudy = async (req: Request, res: Response) => {
             type: NotiTypeEnum.UPDATE_STUDY,
           });
         }
+      }
+
+      if (req.body.dueDate) {
+        const due = new Date(req.body.dueDate);
+        schedules[`${study.id}`].stop();
+        schedules[`${study.id}`] = cron.schedule(
+          `0 0 ${due.getDate() + 1} ${due.getMonth() + 1} *`,
+          async () => await scheduleJob(study)
+        );
       }
     }
     return res.status(200).json({ message: '스터디 정보 업데이트 성공' });
@@ -442,40 +455,11 @@ const closeStudy = async (req: Request, res: Response) => {
 
     if (!study) throw new Error(NOT_FOUND);
     if (study.isOpen) {
-      await studyService.closeStudy(study);
-
       if (process.env.NODE_ENV !== 'test') {
-        const members = await findAcceptedByStudyId(study.id);
-        members.map((record: Record<string, string | boolean>) => ({
-          userId: record.StudyUser_USER_ID,
-        }));
-        if (members.length !== 0) {
-          for (const member of members) {
-            await createStudyNoti({
-              id: study.id,
-              userId: member.userId,
-              title: '모집 종료',
-              about: `모집이 종료되었어요. 스터디를 응원합니다!`,
-              type: NotiTypeEnum.CLOSED,
-            });
-          }
-        }
-
-        const applicants = await findNotAcceptedApplicantsByStudyId(study.id);
-        applicants.map((record: Record<string, string | boolean>) => ({
-          userId: record.StudyUser_USER_ID,
-        }));
-        if (applicants.length !== 0) {
-          for (const user of applicants) {
-            await createStudyNoti({
-              id: study.id,
-              userId: user.userId,
-              title: '모집 종료',
-              about: '스터디의 모집이 마감되었어요.',
-              type: NotiTypeEnum.CLOSED,
-            });
-          }
-        }
+        await scheduleJob(study);
+        schedules[`${study.id}`].stop();
+        delete schedules[`${study.id}`];
+        closedschedules.splice(closedschedules.indexOf(study.id), 1);
       }
     } else {
       throw new Error(BAD_REQUEST);
