@@ -501,7 +501,24 @@ export default {
  *           - type: array
  *             items:
  *               type: object
- *               $ref: "#/definitions/StudyUser"
+ *               properties:
+ *                 studyId:
+ *                   type: string
+ *                   format: uuid
+ *                   description: "대상 스터디 id"
+ *                 userId:
+ *                   type: string
+ *                   format: uuid
+ *                   description: "스터디에 참가중인 사용자의 id"
+ *                 tempBio:
+ *                   type: string
+ *                   description: "참가중인 사용자의 인사말"
+ *                 username:
+ *                   type: string
+ *                   description: "참가중인 사용자가 서비스에서 사용중인 닉네임"
+ *                 image:
+ *                   type: string
+ *                   description: "참가중인 사용자의 프로필 이미지 위치"
  *       404:
  *         description: "전달한 studyid가 데이터베이스에 없는 경우입니다"
  *         schema:
