@@ -41,14 +41,14 @@ export default {
       const DAY = 24 * HOUR;
       res.cookie('accessToken', accessToken, {
         expires: new Date(Date.now() + 3 * HOUR),
-        domain: 'cau.rudy3091.com',
+        domain: 'caustudy.com',
         sameSite: 'none',
         secure: true,
       });
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         expires: new Date(Date.now() + 14 * DAY),
-        domain: 'cau.rudy3091.com',
+        domain: 'caustudy.com',
         sameSite: 'none',
         secure: true,
       });
