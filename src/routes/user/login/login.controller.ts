@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { UserRoleEnum } from '../../../entity/UserEntity';
 import { findUserByEmail, loginUserById } from '../../../services/user';
 
 export default {
@@ -16,8 +17,9 @@ export default {
       const user = await findUserByEmail(email);
       if (!user) throw new Error(NOT_FOUND);
 
+      const isGuest = user.role === UserRoleEnum.GUEST;
       const isUser = bcrypt.compareSync(password, user?.password);
-      if (!isUser) throw new Error(UNAUTHORIZED);
+      if (isGuest || !isUser) throw new Error(UNAUTHORIZED);
       await loginUserById(user.id);
 
       const accessToken = jwt.sign(
