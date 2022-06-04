@@ -75,12 +75,21 @@ export const findAcceptedByStudyId = async (studyId: string) => {
  * 참가신청이 수락대기중인 사용자 목록 조회
  */
 export const findNotAcceptedApplicantsByStudyId = async (studyId: string) => {
-  return await getRepository(StudyUser)
-    .createQueryBuilder()
-    .select()
-    .where('STUDY_ID = :id', { id: studyId })
-    .andWhere('IS_ACCEPTED = 0')
-    .execute();
+  return await getConnection()
+    .createQueryRunner()
+    .query(
+      'SELECT \
+        STUDY_USER.STUDY_ID, STUDY_USER.USER_ID, STUDY_USER.TEMP_BIO, \
+        USER_PROFILE.USER_NAME, USER_PROFILE.IMAGE \
+      FROM STUDY_USER \
+      JOIN \
+        USER_PROFILE ON \
+        STUDY_USER.USER_ID = USER_PROFILE.USER_ID \
+      WHERE \
+        STUDY_USER.STUDY_ID = ? \
+      AND STUDY_USER.IS_ACCEPTED = 0',
+      [studyId]
+    );
 };
 
 export const updateAcceptStatus = async (

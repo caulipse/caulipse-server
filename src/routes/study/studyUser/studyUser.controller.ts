@@ -62,10 +62,11 @@ export default {
       );
       res.json(
         result.map((record: Record<string, string | boolean>) => ({
-          studyId: record.StudyUser_STUDY_ID,
-          userId: record.StudyUser_USER_ID,
-          isAccepted: record.StudyUser_IS_ACCEPTED,
-          tempBio: record.StudyUser_TEMP_BIO,
+          studyId: record.STUDY_ID,
+          userId: record.USER_ID,
+          tempBio: record.TEMP_BIO,
+          username: record.USER_NAME,
+          image: record.IMAGE,
         }))
       );
     } catch (e) {
@@ -282,7 +283,24 @@ export default {
  *             - type: array
  *               items:
  *                 type: object
- *                 $ref: "#/definitions/StudyUser"
+ *                 properties:
+ *                   studyId:
+ *                     type: string
+ *                     format: uuid
+ *                     description: "대상 스터디 id"
+ *                   userId:
+ *                     type: string
+ *                     format: uuid
+ *                     description: "스터디에 참가중인 사용자의 id"
+ *                   tempBio:
+ *                     type: string
+ *                     description: "참가중인 사용자의 인사말"
+ *                   username:
+ *                     type: string
+ *                     description: "참가중인 사용자가 서비스에서 사용중인 닉네임"
+ *                   image:
+ *                     type: string
+ *                     description: "참가중인 사용자의 프로필 이미지 위치"
  *         401:
  *           description: "로그인이 되어있지 않은 경우"
  *           schema:
