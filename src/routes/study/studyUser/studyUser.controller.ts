@@ -301,6 +301,10 @@ export default {
  *                   image:
  *                     type: string
  *                     description: "참가중인 사용자의 프로필 이미지 위치"
+ *                   date:
+ *                     type: string
+ *                     format: date-time
+ *                     description: "참가 신청 날짜"
  *         401:
  *           description: "로그인이 되어있지 않은 경우"
  *           schema:

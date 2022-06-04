@@ -1,4 +1,11 @@
-import { Entity, PrimaryColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+} from 'typeorm';
 import Study from './StudyEntity';
 import UserProfile from './UserProfileEntity';
 
@@ -6,6 +13,9 @@ import UserProfile from './UserProfileEntity';
 export default class StudyUser {
   @PrimaryColumn('uuid')
   USER_ID!: string;
+
+  @CreateDateColumn({ name: 'CREATED_AT' })
+  createdAt!: Date;
 
   @ManyToOne(() => UserProfile, (user) => user.id)
   @JoinColumn({ name: 'USER_ID' })
@@ -31,6 +41,10 @@ export default class StudyUser {
  *   StudyUser:
  *     type: object
  *     properties:
+ *       createdAt:
+ *         type: string
+ *         format: date-time
+ *         description: "스터디에 참가신청을 보낸 시간"
  *       userId:
  *         type: string
  *         format: uuid
