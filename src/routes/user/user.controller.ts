@@ -133,9 +133,18 @@ export default {
       if (profileDeleteResult.affected === 0 || userDeleteResult.affected === 0)
         throw new Error(NOT_FOUND);
 
-      res.clearCookie('accessToken');
-      res.clearCookie('refreshToken');
-
+      res.cookie('accessToken', '', {
+        maxAge: 0,
+        domain: 'caustudy.com',
+        sameSite: 'none',
+        secure: true,
+      });
+      res.cookie('refreshToken', '', {
+        maxAge: 0,
+        domain: 'caustudy.com',
+        sameSite: 'none',
+        secure: true,
+      });
       res.json({ message: '회원 탈퇴 성공' });
     } catch (e) {
       if ((e as Error).message === NOT_FOUND) {
