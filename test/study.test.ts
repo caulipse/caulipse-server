@@ -9,7 +9,7 @@ import { randomUUID } from 'crypto';
 import bcrypt from 'bcrypt';
 import app from '../src';
 import { db } from '../src/config/db';
-import {
+import Study, {
   FrequencyEnum,
   LocationEnum,
   WeekDayEnum,
@@ -50,7 +50,7 @@ beforeAll(async () => {
   profile.showDept = false;
   profile.showGrade = false;
   profile.onBreak = false;
-  profile.categories = ['100'];
+  profile.categories = ['101'];
   profile.link1 = 'user_link1';
   profile.link2 = 'user_link2';
   profile.link3 = 'user_link3';
@@ -59,6 +59,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await getRepository(Study).createQueryBuilder().delete().execute();
   await getRepository(UserProfile).createQueryBuilder().delete().execute();
   await getRepository(User).createQueryBuilder().delete().execute();
 
@@ -88,7 +89,7 @@ describe('POST /api/study', () => {
         frequency: FrequencyEnum.TWICE,
         location: [LocationEnum.CAFE, LocationEnum.ELSE],
         capacity: 8,
-        categoryCode: 100,
+        categoryCode: 101,
         dueDate: new Date(date.getTime() + 60 * 60 * 5),
       });
     studyid = res.body.id;
@@ -117,7 +118,7 @@ describe('POST /api/study', () => {
         frequency: FrequencyEnum.TWICE,
         location: [LocationEnum.CAFE, LocationEnum.ELSE],
         capacity: 8,
-        categorycode: 100,
+        categorycode: 101,
         dueDate: new Date(date.getTime() + 60 * 60 * 5),
       });
 
@@ -127,12 +128,14 @@ describe('POST /api/study', () => {
 
 describe('GET /api/study', () => {
   it('query를 포함한 요청을 받으면 필터링, 정렬, 페이지네이션을 거친 후 스터디 목록과 페이지 커서 반환(첫번째 페이지) - 마감항목 포함 O', async () => {
-    const res = await request(app).get('/api/study').query({
-      categoryCode: 100,
-      frequency: FrequencyEnum.TWICE,
-      // weekday: 'mon,tue',
-      // location: LocationEnum.CAFE + ',' + LocationEnum.ELSE,
-    });
+    const res = await request(app)
+      .get('/api/study')
+      .query({
+        categoryCode: 101,
+        frequency: FrequencyEnum.TWICE,
+        weekday: 'mon,tue',
+        location: LocationEnum.CAFE + ',' + LocationEnum.ELSE,
+      });
     const { studies, pageNo, pages, total } = res.body;
 
     expect(res.status).toBe(200);
@@ -141,9 +144,8 @@ describe('GET /api/study', () => {
     expect(pages).not.toBeNull();
     expect(total).not.toBeNull();
 
-    expect(studies[0]).toHaveProperty('categoryCode', 100);
+    expect(studies[0]).toHaveProperty('categoryCode', 101);
     expect(studies[0]).toHaveProperty('frequency', FrequencyEnum.TWICE);
-    /*
     expect(studies[0]).toHaveProperty('weekday', [
       WeekDayEnum.MON,
       WeekDayEnum.TUE,
@@ -152,16 +154,92 @@ describe('GET /api/study', () => {
       LocationEnum.CAFE,
       LocationEnum.ELSE,
     ]);
-    */
     expect(studies[0].dueDate).not.toBeNull();
   });
 
   it('query를 포함한 요청을 받으면 필터링, 정렬, 페이지네이션을 거친 후 스터디 목록과 페이지 커서 반환(첫번째 페이지) - 마감항목 포함 X', async () => {
+    const res = await request(app)
+      .get('/api/study')
+      .query({
+        categoryCode: 101,
+        frequency: FrequencyEnum.TWICE,
+        weekday: 'mon,tue',
+        location: LocationEnum.CAFE + ',' + LocationEnum.ELSE,
+        hideCloseTag: 1,
+      });
+    const { studies, pageNo, pages, total } = res.body;
+
+    expect(res.status).toBe(200);
+    expect(studies).not.toBeNull();
+    expect(pageNo).not.toBeNull();
+    expect(pages).not.toBeNull();
+    expect(total).not.toBeNull();
+
+    expect(studies[0]).toHaveProperty('categoryCode', 101);
+    expect(studies[0]).toHaveProperty('frequency', FrequencyEnum.TWICE);
+    expect(studies[0]).toHaveProperty('weekday', [
+      WeekDayEnum.MON,
+      WeekDayEnum.TUE,
+    ]);
+    expect(studies[0]).toHaveProperty('location', [
+      LocationEnum.CAFE,
+      LocationEnum.ELSE,
+    ]);
+  });
+});
+
+describe('GET /api/study - 필터링', () => {
+  it('복수 필터링 및 카테고리 필터링 적용 후 리스트 응답 - frequency', async () => {
+    /* login */
+    const loginRes = await request(app).post('/api/user/login').send({
+      email: 'test@gmail.com',
+      password: 'test',
+    });
+    const cookies = loginRes.headers['set-cookie'];
+
+    /* create study */
+    await request(app)
+      .post('/api/study')
+      .set('Cookie', cookies)
+      .send({
+        title: 'study#1',
+        studyAbout: 'about#1',
+        weekday: [WeekDayEnum.FRI, WeekDayEnum.SAT, WeekDayEnum.SUN],
+        frequency: FrequencyEnum.MORE,
+        location: [LocationEnum.CAFE, LocationEnum.LIBRARY, LocationEnum.LOC1],
+        capacity: 8,
+        categoryCode: 101,
+        dueDate: new Date(new Date().getTime() + 60 * 60 * 5),
+      });
+    await request(app)
+      .post('/api/study')
+      .set('Cookie', cookies)
+      .send({
+        title: 'study#2',
+        studyAbout: 'about#2',
+        weekday: [WeekDayEnum.MON, WeekDayEnum.WED, WeekDayEnum.FRI],
+        frequency: FrequencyEnum.MORE,
+        location: [LocationEnum.ELSE, LocationEnum.ROOM, LocationEnum.S_CAFE],
+        capacity: 8,
+        categoryCode: 102,
+        dueDate: new Date(new Date().getTime() + 60 * 60 * 5),
+      });
+    await request(app)
+      .post('/api/study')
+      .set('Cookie', cookies)
+      .send({
+        title: 'study#3',
+        studyAbout: 'about#3',
+        weekday: [WeekDayEnum.THU, WeekDayEnum.SUN],
+        frequency: FrequencyEnum.TWICE,
+        location: [LocationEnum.ROOM, LocationEnum.LOC2],
+        capacity: 8,
+        categoryCode: 104,
+        dueDate: new Date(new Date().getTime() + 60 * 60 * 5),
+      });
+
     const res = await request(app).get('/api/study').query({
-      categoryCode: 100,
-      frequency: FrequencyEnum.TWICE,
-      // weekday: 'mon,tue',
-      // location: LocationEnum.CAFE + ',' + LocationEnum.ELSE,
+      frequency: FrequencyEnum.MORE,
       hideCloseTag: 1,
     });
     const { studies, pageNo, pages, total } = res.body;
@@ -171,19 +249,71 @@ describe('GET /api/study', () => {
     expect(pageNo).not.toBeNull();
     expect(pages).not.toBeNull();
     expect(total).not.toBeNull();
+    expect(studies[0]).toHaveProperty('frequency', FrequencyEnum.MORE);
+  });
 
-    expect(studies[0]).toHaveProperty('categoryCode', 100);
-    expect(studies[0]).toHaveProperty('frequency', FrequencyEnum.TWICE);
-    /*
-    expect(studies[0]).toHaveProperty('weekday', [
-      WeekDayEnum.MON,
-      WeekDayEnum.TUE,
-    ]);
-    expect(studies[0]).toHaveProperty('location', [
-      LocationEnum.CAFE,
-      LocationEnum.ELSE,
-    ]);
-    */
+  it('복수 필터링 및 카테고리 필터링 적용 후 리스트 응답 - weekday', async () => {
+    const res = await request(app).get('/api/study').query({
+      weekday: 'mon,sun',
+      hideCloseTag: 1,
+    });
+    const { studies, pageNo, pages, total } = res.body;
+
+    expect(res.status).toBe(200);
+    expect(studies).not.toBeNull();
+    expect(pageNo).not.toBeNull();
+    expect(pages).not.toBeNull();
+    expect(total).not.toBeNull();
+    // expect(studies[0].weekday).toEqual(
+    //   expect.arrayContaining([WeekDayEnum.MON, WeekDayEnum.SUN])
+    // );
+  });
+
+  it('복수 필터링 및 카테고리 필터링 적용 후 리스트 응답 - location', async () => {
+    const res = await request(app).get('/api/study').query({
+      location: 'room,else',
+      hideCloseTag: 1,
+    });
+    const { studies, pageNo, pages, total } = res.body;
+
+    expect(res.status).toBe(200);
+    expect(studies).not.toBeNull();
+    expect(pageNo).not.toBeNull();
+    expect(pages).not.toBeNull();
+    expect(total).not.toBeNull();
+    // expect(studies[0].location).toEqual(
+    //   expect.arrayContaining([LocationEnum.ROOM, LocationEnum.ELSE])
+    // );
+  });
+
+  it('복수 필터링 및 카테고리 필터링 적용 후 리스트 응답 - 상위 카테고리', async () => {
+    const res = await request(app).get('/api/study').query({
+      categoryCode: 100,
+      hideCloseTag: 1,
+    });
+    const { studies, pageNo, pages, total } = res.body;
+
+    expect(res.status).toBe(200);
+    expect(studies).not.toBeNull();
+    expect(pageNo).not.toBeNull();
+    expect(pages).not.toBeNull();
+    expect(total).not.toBeNull();
+    expect(total).toBe(4);
+  });
+
+  it('복수 필터링 및 카테고리 필터링 적용 후 리스트 응답 - 하위 카테고리', async () => {
+    const res = await request(app).get('/api/study').query({
+      categoryCode: 104,
+      hideCloseTag: 1,
+    });
+    const { studies, pageNo, pages, total } = res.body;
+
+    expect(res.status).toBe(200);
+    expect(studies).not.toBeNull();
+    expect(pageNo).not.toBeNull();
+    expect(pages).not.toBeNull();
+    expect(total).not.toBeNull();
+    expect(studies[0]).toHaveProperty('categoryCode', 104);
   });
 });
 
@@ -266,7 +396,7 @@ describe('PATCH /api/study/:studyid', () => {
         frequency: FrequencyEnum.MORE,
         location: [LocationEnum.LIBRARY, LocationEnum.NO_CONTACT],
         capacity: 10,
-        categoryCode: 100,
+        categoryCode: 102,
         dueDate: new Date(date.getTime() + 60 * 60 * 7),
       });
 
@@ -302,7 +432,7 @@ describe('PATCH /api/study/:studyid', () => {
         frequency: FrequencyEnum.MORE,
         location: [LocationEnum.LIBRARY, LocationEnum.NO_CONTACT],
         capacity: 10,
-        categoryCode: 100,
+        categoryCode: 102,
         dueDate: new Date(date.getTime() + 60 * 60 * 7),
       });
 
@@ -321,7 +451,7 @@ describe('PATCH /api/study/:studyid', () => {
         frequency: FrequencyEnum.MORE,
         location: [LocationEnum.LIBRARY, LocationEnum.NO_CONTACT],
         capacity: 10,
-        categoryCode: 100,
+        categoryCode: 102,
         dueDate: new Date(date.getTime() + 60 * 60 * 7),
       });
 

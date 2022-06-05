@@ -28,21 +28,23 @@ const countAllStudy = async ({
           to: code + CATEGORY_COUNT,
         });
       } else {
-        query.orWhere('study.categoryCode = :categoryCode', { code });
+        query.orWhere('study.categoryCode = :code', { code });
       }
     });
   }
   if (weekdayFilter && weekdayFilter.length) {
-    weekdayFilter.forEach((weekday) => {
-      query.orWhere('study.weekday like :weekday', { weekday: `%${weekday}%` });
-    });
+    let condition = `study.weekday LIKE '%${weekdayFilter[0]}%'`;
+    for (let i = 1; i < weekdayFilter.length; i++) {
+      condition += `OR study.weekday LIKE '%${weekdayFilter[i]}%'`;
+    }
+    query.andWhere(condition);
   }
   if (locationFilter && locationFilter.length) {
-    locationFilter.forEach((location) => {
-      query.orWhere('study.location like :location', {
-        location: `%${location}%`,
-      });
-    });
+    let condition = `study.location LIKE '%${locationFilter[0]}%'`;
+    for (let i = 1; i < locationFilter.length; i++) {
+      condition += `OR study.location LIKE '%${locationFilter[i]}%'`;
+    }
+    query.andWhere(condition);
   }
   if (frequencyFilter) {
     query.andWhere('study.frequency = :frequencyFilter', { frequencyFilter });
@@ -76,21 +78,23 @@ const getAllStudy = async ({
           to: code + CATEGORY_COUNT,
         });
       } else {
-        sq.orWhere('study.categoryCode = :categoryCode', { code });
+        sq.orWhere('study.categoryCode = :code', { code });
       }
     });
   }
   if (weekdayFilter && weekdayFilter.length) {
-    weekdayFilter.forEach((weekday) => {
-      sq.orWhere('study.weekday like :weekday', { weekday: `%${weekday}%` });
-    });
+    let condition = `study.weekday LIKE '%${weekdayFilter[0]}%'`;
+    for (let i = 1; i < weekdayFilter.length; i++) {
+      condition += `OR study.weekday LIKE '%${weekdayFilter[i]}%'`;
+    }
+    sq.andWhere(condition);
   }
   if (locationFilter && locationFilter.length) {
-    locationFilter.forEach((location) => {
-      sq.orWhere('study.location like :location', {
-        location: `%${location}%`,
-      });
-    });
+    let condition = `study.location LIKE '%${locationFilter[0]}%'`;
+    for (let i = 1; i < locationFilter.length; i++) {
+      condition += `OR study.location LIKE '%${locationFilter[i]}%'`;
+    }
+    sq.andWhere(condition);
   }
   if (frequencyFilter) {
     sq.andWhere('study.frequency = :frequencyFilter', { frequencyFilter });
@@ -222,16 +226,18 @@ const searchStudy = async (searchStudyDTO: searchStudyDTO) => {
     );
 
   if (weekdayFilter && weekdayFilter.length) {
-    weekdayFilter.forEach((weekday) => {
-      query.orWhere('study.weekday like :weekday', { weekday: `%${weekday}%` });
-    });
+    let condition = `study.weekday LIKE '%${weekdayFilter[0]}%'`;
+    for (let i = 1; i < weekdayFilter.length; i++) {
+      condition += `OR study.weekday LIKE '%${weekdayFilter[i]}%'`;
+    }
+    query.andWhere(condition);
   }
   if (locationFilter && locationFilter.length) {
-    locationFilter.forEach((location) => {
-      query.orWhere('study.location like :location', {
-        location: `%${location}%`,
-      });
-    });
+    let condition = `study.location LIKE '%${locationFilter[0]}%'`;
+    for (let i = 1; i < locationFilter.length; i++) {
+      condition += `OR study.location LIKE '%${locationFilter[i]}%'`;
+    }
+    query.andWhere(condition);
   }
   if (frequencyFilter) {
     query.andWhere('study.frequency = :frequencyFilter', { frequencyFilter });

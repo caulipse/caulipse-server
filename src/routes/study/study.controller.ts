@@ -236,44 +236,49 @@ const getStudybyId = async (req: Request, res: Response) => {
     }
     await studyService.updateStudyViews(study);
 
-    let { accessToken, refreshToken } = req.cookies;
+    if (req.cookies) {
+      let { accessToken, refreshToken } = req.cookies;
+      if (!accessToken && !refreshToken) {
+        return res
+          .status(200)
+          .json({ ...study, bookmarked: false, applied: false });
+      }
 
-    if (!accessToken && !refreshToken) {
+      if (!accessToken && refreshToken) {
+        await refresh(req, res);
+
+        if (!req.cookies.accessToken) return;
+        else {
+          accessToken = req.cookies.accessToken;
+          refreshToken = req.cookies.refreshToken;
+        }
+      }
+
+      try {
+        const decoded = jwt.verify(
+          accessToken,
+          process.env.SIGNUP_TOKEN_SECRET as string
+        ) as { id: string };
+        req.user = { id: decoded.id };
+
+        const bookmarkFlag = await bookmarkService.checkBookmarked(
+          decoded.id,
+          studyid
+        );
+        const appliedFlag = await checkApplied(studyid, decoded.id);
+
+        return res.status(200).json({
+          ...study,
+          bookmarked: bookmarkFlag ? true : false,
+          applied: appliedFlag ? true : false,
+        });
+      } catch (e) {
+        res.status(200).json({ ...study, bookmarked: false, applied: false });
+      }
+    } else {
       return res
         .status(200)
         .json({ ...study, bookmarked: false, applied: false });
-    }
-
-    if (!accessToken && refreshToken) {
-      await refresh(req, res);
-
-      if (!req.cookies.accessToken) return;
-      else {
-        accessToken = req.cookies.accessToken;
-        refreshToken = req.cookies.refreshToken;
-      }
-    }
-
-    try {
-      const decoded = jwt.verify(
-        accessToken,
-        process.env.SIGNUP_TOKEN_SECRET as string
-      ) as { id: string };
-      req.user = { id: decoded.id };
-
-      const bookmarkFlag = await bookmarkService.checkBookmarked(
-        decoded.id,
-        studyid
-      );
-      const appliedFlag = await checkApplied(studyid, decoded.id);
-
-      return res.status(200).json({
-        ...study,
-        bookmarked: bookmarkFlag ? true : false,
-        applied: appliedFlag ? true : false,
-      });
-    } catch (e) {
-      res.status(200).json({ ...study, bookmarked: false, applied: false });
     }
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
