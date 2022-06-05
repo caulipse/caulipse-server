@@ -58,7 +58,7 @@ export const findAcceptedByStudyId = async (studyId: string) => {
     .createQueryRunner()
     .query(
       'SELECT \
-        STUDY_USER.STUDY_ID, STUDY_USER.USER_ID, STUDY_USER.TEMP_BIO, STUDY_USER.CREATED_AT \
+        STUDY_USER.STUDY_ID, STUDY_USER.USER_ID, STUDY_USER.TEMP_BIO, STUDY_USER.CREATED_AT, \
         USER_PROFILE.USER_NAME, USER_PROFILE.IMAGE \
       FROM STUDY_USER \
       JOIN \
@@ -79,7 +79,7 @@ export const findNotAcceptedApplicantsByStudyId = async (studyId: string) => {
     .createQueryRunner()
     .query(
       'SELECT \
-        STUDY_USER.STUDY_ID, STUDY_USER.USER_ID, STUDY_USER.TEMP_BIO, STUDY_USER.CREATED_AT \
+        STUDY_USER.STUDY_ID, STUDY_USER.USER_ID, STUDY_USER.TEMP_BIO, STUDY_USER.CREATED_AT, \
         USER_PROFILE.USER_NAME, USER_PROFILE.IMAGE \
       FROM STUDY_USER \
       JOIN \
