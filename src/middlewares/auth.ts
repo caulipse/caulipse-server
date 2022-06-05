@@ -31,7 +31,7 @@ export const refresh = async (req: Request, res: Response) => {
     const hour = 3600 * 1000;
     res.cookie('accessToken', newAccessToken, {
       expires: new Date(Date.now() + 3 * hour),
-      domain: 'cau.rudy3091.com',
+      domain: 'caustudy.com',
       sameSite: 'none',
       secure: true,
     });
