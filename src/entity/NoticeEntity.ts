@@ -28,7 +28,7 @@ export default class Notice {
   @Column('uuid')
   HOST_ID!: string;
 
-  @ManyToOne(() => UserProfile, (user) => user.notices)
+  @ManyToOne(() => UserProfile, (user) => user.notices, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'HOST_ID' })
   hostId!: UserProfile;
 }

@@ -17,7 +17,7 @@ export default class StudyUser {
   @CreateDateColumn({ name: 'CREATED_AT' })
   createdAt!: Date;
 
-  @ManyToOne(() => UserProfile, (user) => user.id)
+  @ManyToOne(() => UserProfile, (user) => user.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'USER_ID' })
   user!: UserProfile;
 

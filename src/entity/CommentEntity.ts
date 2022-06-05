@@ -29,7 +29,10 @@ export default class Comment {
   @Column('uuid', { nullable: true })
   USER_ID!: string | null;
 
-  @ManyToOne(() => UserProfile, (user) => user.comments, { nullable: true })
+  @ManyToOne(() => UserProfile, (user) => user.comments, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'USER_ID' })
   user!: UserProfile | null;
 
@@ -55,7 +58,7 @@ export default class Comment {
   @Column('int', { name: 'METOO_COUNT' })
   metooCount!: number;
 
-  @ManyToMany(() => UserProfile, { cascade: true })
+  @ManyToMany(() => UserProfile, { cascade: true, onDelete: 'CASCADE' })
   @JoinTable({
     name: 'USER_METOO_COMMENT',
     joinColumn: {

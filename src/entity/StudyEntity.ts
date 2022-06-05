@@ -61,7 +61,7 @@ export default class Study {
   @Column('uuid')
   HOST_ID!: string;
 
-  @ManyToOne(() => UserProfile, (user) => user.id)
+  @ManyToOne(() => UserProfile, (user) => user.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'HOST_ID' })
   hostId!: UserProfile;
 
@@ -89,7 +89,11 @@ export default class Study {
   @Column('int', { name: 'BOOKMARK_COUNT' })
   bookmarkCount!: number;
 
-  @ManyToMany(() => UserProfile, { cascade: true, nullable: true })
+  @ManyToMany(() => UserProfile, {
+    cascade: true,
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @JoinTable({
     name: 'BOOKMARK',
     joinColumn: {
