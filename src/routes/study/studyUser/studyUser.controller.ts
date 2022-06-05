@@ -220,7 +220,7 @@ export default {
       if (!study) throw new Error(NOT_FOUND);
 
       const isDeletedByHost = study.HOST_ID === userId;
-      if (userId !== targetUserId && isDeletedByHost)
+      if (userId !== targetUserId && !isDeletedByHost)
         throw new Error(FORBIDDEN);
 
       if (isDeletedByHost) {
@@ -247,6 +247,8 @@ export default {
       const err = e as Error;
       if (err.message === BAD_REQUEST) {
         res.status(400).json({ message: BAD_REQUEST });
+      } else if (err.message === FORBIDDEN) {
+        res.status(403).json({ message: FORBIDDEN });
       } else if (err.message === NOT_FOUND) {
         res.status(404).json({ message: NOT_FOUND });
       } else {
