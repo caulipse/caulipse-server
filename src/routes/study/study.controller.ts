@@ -273,13 +273,15 @@ const getStudybyId = async (req: Request, res: Response) => {
           applied: appliedFlag ? true : false,
         });
       } catch (e) {
-        res.status(200).json({ ...study, bookmarked: false, applied: false });
+        return res
+          .status(200)
+          .json({ ...study, bookmarked: false, applied: false });
       }
-    } else {
-      return res
-        .status(200)
-        .json({ ...study, bookmarked: false, applied: false });
     }
+
+    return res
+      .status(200)
+      .json({ ...study, bookmarked: false, applied: false });
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
       return res.status(404).json({ message: NOT_FOUND });
