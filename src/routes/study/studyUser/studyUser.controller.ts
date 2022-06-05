@@ -302,7 +302,7 @@ export default {
  *                   image:
  *                     type: string
  *                     description: "참가중인 사용자의 프로필 이미지 위치"
- *                   date:
+ *                   createdAt:
  *                     type: string
  *                     format: date-time
  *                     description: "참가 신청 날짜"
