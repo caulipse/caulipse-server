@@ -9,12 +9,8 @@ export default {
       const id = (req.user as { id: string }).id;
       if (!id) throw new Error(UNAUTHORIZED);
       await logoutUserById(id);
-      res.cookie('accessToken', '', {
-        expires: new Date(Date.now()),
-      });
-      res.cookie('refreshToken', '', {
-        expires: new Date(Date.now()),
-      });
+      res.clearCookie('accessToken');
+      res.clearCookie('refreshToken');
       res.end();
     } catch (e) {
       if ((e as Error).message === UNAUTHORIZED) {
