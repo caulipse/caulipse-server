@@ -67,6 +67,7 @@ export default {
           tempBio: record.TEMP_BIO,
           username: record.USER_NAME,
           image: record.IMAGE,
+          createdAt: record.CREATED_AT,
         }))
       );
     } catch (e) {
