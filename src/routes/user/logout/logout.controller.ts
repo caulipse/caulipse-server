@@ -9,8 +9,18 @@ export default {
       const id = (req.user as { id: string }).id;
       if (!id) throw new Error(UNAUTHORIZED);
       await logoutUserById(id);
-      res.clearCookie('accessToken');
-      res.clearCookie('refreshToken');
+      res.cookie('accessToken', '', {
+        maxAge: 0,
+        domain: 'caustudy.com',
+        sameSite: 'none',
+        secure: true,
+      });
+      res.cookie('refreshToken', '', {
+        maxAge: 0,
+        domain: 'caustudy.com',
+        sameSite: 'none',
+        secure: true,
+      });
       res.end();
     } catch (e) {
       if ((e as Error).message === UNAUTHORIZED) {
