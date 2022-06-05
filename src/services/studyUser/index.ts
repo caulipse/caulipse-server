@@ -37,7 +37,7 @@ export const findAllIfParticipatedByUserId = async (userId: string) => {
     .createQueryRunner()
     .query(
       'SELECT \
-        STUDY.ID, STUDY.TITLE, STUDY.CREATED_AT, STUDY.VIEWS, \
+        STUDY.ID, STUDY.TITLE, STUDY.CREATED_AT, STUDY.VIEWS, STUDY.IS_OPEN, \
         STUDY.BOOKMARK_COUNT, STUDY.CAPACITY, STUDY.MEMBERS_COUNT, STUDY.DUE_DATE, STUDY_USER.IS_ACCEPTED \
       FROM STUDY \
       JOIN \

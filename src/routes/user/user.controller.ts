@@ -187,6 +187,7 @@ export default {
         isAccepted: !!item.IS_ACCEPTED,
         membersCount: item.MEMBERS_COUNT,
         capacity: item.CAPACITY,
+        isOpen: item.IS_OPEN,
         dueDate: item.DUE_DATE,
       }));
       res.json(response);
@@ -359,6 +360,8 @@ export default {
  *              bookmarkCount:
  *                type: number
  *                example: 0
+ *              isOpen:
+ *                type: string
  *              dueDate:
  *                type: date-time
  *      401:
