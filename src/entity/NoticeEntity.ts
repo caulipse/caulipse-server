@@ -13,10 +13,10 @@ export default class Notice {
   @PrimaryGeneratedColumn('uuid', { name: 'ID' })
   id!: string;
 
-  @Column({ name: 'TITLE' })
+  @Column('varchar', { name: 'TITLE', length: 500 })
   title!: string;
 
-  @Column({ name: 'ABOUT' })
+  @Column('varchar', { name: 'ABOUT', length: 500 })
   about!: string;
 
   @CreateDateColumn({ name: 'CREATED_AT' })

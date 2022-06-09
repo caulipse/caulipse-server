@@ -43,10 +43,10 @@ export default class Study {
   @CreateDateColumn({ name: 'CREATED_AT' })
   createdAt!: Date;
 
-  @Column({ name: 'TITLE' })
+  @Column('varchar', { name: 'TITLE', length: 500 })
   title!: string;
 
-  @Column({ name: 'STUDY_ABOUT' })
+  @Column('varchar', { name: 'STUDY_ABOUT', length: 500 })
   studyAbout!: string;
 
   @Column('set', { enum: WeekDayEnum, name: 'WEEKDAY' })

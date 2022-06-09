@@ -26,7 +26,10 @@ export default class Notification {
   @Column('uuid', { nullable: true })
   STUDY_ID!: string | null;
 
-  @ManyToOne(() => Study, (study) => study.id, { nullable: true })
+  @ManyToOne(() => Study, (study) => study.id, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'STUDY_ID' })
   study!: Study | null;
 

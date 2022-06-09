@@ -24,7 +24,7 @@ export default class StudyUser {
   @PrimaryColumn('uuid')
   STUDY_ID!: string;
 
-  @ManyToOne(() => Study, (study) => study.id)
+  @ManyToOne(() => Study, (study) => study.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'STUDY_ID' })
   study!: Study;
 
