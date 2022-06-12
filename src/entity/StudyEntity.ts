@@ -43,7 +43,7 @@ export default class Study {
   @CreateDateColumn({ name: 'CREATED_AT' })
   createdAt!: Date;
 
-  @Column('varchar', { name: 'TITLE', length: 500 })
+  @Column('varchar', { name: 'TITLE', length: 40 })
   title!: string;
 
   @Column('varchar', { name: 'STUDY_ABOUT', length: 500 })

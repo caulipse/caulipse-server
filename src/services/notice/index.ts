@@ -1,12 +1,7 @@
 import { randomUUID } from 'crypto';
 import { getRepository } from 'typeorm';
 import Notice from '../../entity/NoticeEntity';
-import User from '../../entity/UserEntity';
 import UserProfile from '../../entity/UserProfileEntity';
-
-export const findAllUser = async () => {
-  return await getRepository(User).createQueryBuilder().select('id').getMany();
-};
 
 export const findNoticeCount = async () => {
   return await getRepository(Notice).createQueryBuilder().select().getCount();

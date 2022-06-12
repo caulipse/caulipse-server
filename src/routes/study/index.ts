@@ -11,7 +11,11 @@ router.get('/', controller.getAllStudy);
 router.post('/', checkToken, controller.createStudy);
 
 router.get('/search', controller.searchStudy);
-router.get('/:studyid', controller.getStudybyId);
+router.get(
+  '/:studyid',
+  controller.getStudybyIdWithLogIn,
+  controller.getStudybyId
+);
 router.patch('/:studyid', checkToken, controller.updateStudy);
 router.delete('/:studyid', checkToken, controller.deleteStudy);
 

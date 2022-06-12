@@ -177,34 +177,21 @@ const createStudy = async (studyDTO: studyDTO, user: UserProfile) => {
   return await getRepository(Study).save(study);
 };
 
-const updateStudy = async (studyDTO: studyDTO, study: Study) => {
-  const {
-    title,
-    studyAbout,
-    weekday,
-    frequency,
-    location,
-    capacity,
-    categoryCode,
-    dueDate,
-  } = studyDTO;
-
-  if (title) study.title = title;
-  if (studyAbout) study.studyAbout = studyAbout;
-  if (weekday) study.weekday = weekday;
-  if (frequency) study.frequency = frequency;
-  if (location) study.location = location;
-  if (capacity) study.capacity = capacity;
-  if (categoryCode) study.categoryCode = categoryCode;
-  if (dueDate) {
-    const due = new Date(dueDate);
-    study.dueDate = due;
-  }
-  return await getRepository(Study).save(study);
+const updateStudy = async (studyDTO: studyDTO, studyId: string) => {
+  return await getRepository(Study)
+    .createQueryBuilder()
+    .update()
+    .set(studyDTO)
+    .where('id = :studyId', { studyId })
+    .execute();
 };
 
-const deleteStudy = async (study: Study) => {
-  return await getRepository(Study).remove(study);
+const deleteStudy = async (studyId: string) => {
+  return await getRepository(Study)
+    .createQueryBuilder()
+    .delete()
+    .where('id = :studyId', { studyId })
+    .execute();
 };
 
 const searchStudy = async (searchStudyDTO: searchStudyDTO) => {

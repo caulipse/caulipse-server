@@ -126,3 +126,7 @@ const _setLogoutStatusById = (logoutStatus: boolean) => async (id: string) => {
 export const logoutUserById = _setLogoutStatusById(true);
 
 export const loginUserById = _setLogoutStatusById(false);
+
+export const findAllUser = async () => {
+  return await getRepository(User).createQueryBuilder().getMany();
+};

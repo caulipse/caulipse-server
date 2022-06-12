@@ -113,7 +113,7 @@ export default {
           id: studyid,
           userId: study.HOST_ID,
           title: '새로운 신청자',
-          about: `[${profile?.userName}]님이 신청수락을 요청했어요.`,
+          about: `[${profile[0].userProfile_USER_NAME}]님이 신청수락을 요청했어요.`,
           type: NotiTypeEnum.NEW_APPLY,
         });
       }
@@ -159,13 +159,15 @@ export default {
       await studyService.increaseMemberCount(studyId);
 
       if (process.env.NODE_ENV !== 'test') {
-        await createStudyNoti({
-          id: studyId,
-          userId: targetUserId,
-          title: '참가완료',
-          about: '스터디의 참가신청이 수락되었어요:)',
-          type: NotiTypeEnum.ACCEPT,
-        });
+        if (accept) {
+          await createStudyNoti({
+            id: studyId,
+            userId: targetUserId,
+            title: '참가신청 수락',
+            about: '스터디의 참가신청이 수락되었어요:)',
+            type: NotiTypeEnum.ACCEPT,
+          });
+        }
       }
 
       res.json({ message: OK });
@@ -237,13 +239,15 @@ export default {
 
       /* 호스트가 참가신청 취소해버린 경우 */
       if (process.env.NODE_ENV !== 'test') {
-        await createStudyNoti({
-          id: studyid,
-          userId: userId,
-          title: '참가 취소',
-          about: '스터디의 참가신청이 취소되었어요:(',
-          type: NotiTypeEnum.REJECT,
-        });
+        if (isDeletedByHost) {
+          await createStudyNoti({
+            id: studyid,
+            userId: targetUserId,
+            title: '참가신청 취소',
+            about: '스터디의 참가신청이 취소되었어요:(',
+            type: NotiTypeEnum.REJECT,
+          });
+        }
       }
     } catch (e) {
       const err = e as Error;

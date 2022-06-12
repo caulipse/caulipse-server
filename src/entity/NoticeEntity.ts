@@ -13,7 +13,7 @@ export default class Notice {
   @PrimaryGeneratedColumn('uuid', { name: 'ID' })
   id!: string;
 
-  @Column('varchar', { name: 'TITLE', length: 500 })
+  @Column('varchar', { name: 'TITLE', length: 40 })
   title!: string;
 
   @Column('varchar', { name: 'ABOUT', length: 500 })

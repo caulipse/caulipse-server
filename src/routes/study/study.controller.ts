@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import cron from 'node-cron';
 import Study, {
@@ -11,7 +11,7 @@ import studyService from '../../services/study';
 import {
   checkApplied,
   findAcceptedByStudyId,
-  findAllByStudyId,
+  findAllStudyUserByStudyId,
   findNotAcceptedApplicantsByStudyId,
 } from '../../services/studyUser';
 import { temp_findUserProfileById } from '../../services/user/profile';
@@ -20,6 +20,7 @@ import bookmarkService from '../../services/study/bookmark';
 import { getRepository } from 'typeorm';
 import User from '../../entity/UserEntity';
 import { generateToken } from '../../middlewares/auth';
+import { logoutUserById } from '../../services/user';
 
 export const schedules: { [key: string]: cron.ScheduledTask } = {};
 export const closedschedules: string[] = [];
@@ -38,29 +39,23 @@ if (process.env.NODE_ENV !== 'test') {
 const scheduleJob = async (study: Study) => {
   await studyService.updateIsOpen(study);
   const members = await findAcceptedByStudyId(study.id);
-  members.map((record: Record<string, string | boolean>) => ({
-    userId: record.StudyUser_USER_ID,
-  }));
   if (members.length !== 0) {
     for (const member of members) {
       await createStudyNoti({
         id: study.id,
-        userId: member.userId,
+        userId: member.USER_ID,
         title: '모집 종료',
-        about: `모집이 종료되었어요. 스터디를 응원합니다!`,
+        about: `모집이 종료되었어요. ${member.USER_NAME}님의 스터디를 응원합니다!`,
         type: NotiTypeEnum.CLOSED,
       });
     }
   }
   const applicants = await findNotAcceptedApplicantsByStudyId(study.id);
-  applicants.map((record: Record<string, string | boolean>) => ({
-    userId: record.StudyUser_USER_ID,
-  }));
   if (applicants.length !== 0) {
     for (const user of applicants) {
       await createStudyNoti({
         id: study.id,
-        userId: user.userId,
+        userId: user.USER_ID,
         title: '모집 종료',
         about: '스터디의 모집이 마감되었어요.',
         type: NotiTypeEnum.CLOSED,
@@ -226,85 +221,82 @@ const createStudy = async (req: Request, res: Response) => {
   }
 };
 
-const getStudybyId = async (req: Request, res: Response) => {
-  const NOT_FOUND = '데이터베이스에 일치하는 요청값이 없습니다';
+const getStudybyIdWithLogIn = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const FORBIDDEN = '접근 권한이 없습니다';
+  const NOT_FOUND = '데이터베이스에 일치하는 요청값이 없습니다';
 
   try {
     const { studyid } = req.params;
     const study = await studyService.findStudyById(studyid);
+    if (!study) throw new Error(NOT_FOUND);
 
-    if (!study) {
-      throw new Error(NOT_FOUND);
-    }
-    await studyService.updateStudyViews(study);
+    const { accessToken, refreshToken } = req.cookies;
+    let decoded;
 
-    if (req.cookies) {
-      const { accessToken, refreshToken } = req.cookies;
-
-      if (!accessToken && !refreshToken) {
-        return res.status(200).json({
-          ...study,
-          bookmarked: false,
-          applied: false,
-          isLogIn: false,
-        });
-      }
-      if (!accessToken && refreshToken) {
-        try {
-          const decoded = jwt.verify(
-            refreshToken,
-            process.env.SIGNUP_TOKEN_SECRET as string
-          ) as { id: string; email: string };
-          const user = await getRepository(User).findOne({ id: decoded.id });
-          if (user?.id !== decoded.id) throw new Error(FORBIDDEN);
-          if (user?.isLogout) throw new Error(FORBIDDEN);
-
-          const newAccessToken = generateToken({ id: decoded.id });
-          const bookmarkFlag = await bookmarkService.checkBookmarked(
-            decoded.id,
-            studyid
-          );
-          const appliedFlag = await checkApplied(studyid, decoded.id);
-          return res
-            .cookie('accessToken', newAccessToken, {
-              expires: new Date(Date.now() + 3 * 3600 * 1000),
-              domain: 'caustudy.com',
-              sameSite: 'none',
-              secure: true,
-            })
-            .status(200)
-            .json({
-              ...study,
-              bookmarked: bookmarkFlag ? true : false,
-              applied: appliedFlag ? true : false,
-              isLogIn: true,
-            });
-        } catch (e) {
-          if ((e as Error).message === FORBIDDEN) {
-            return res.status(403).json({ message: FORBIDDEN });
-          } else {
-            // logout
-            return res.status(200).json({
-              ...study,
-              bookmarked: false,
-              applied: false,
-              isLogIn: false,
-            });
-          }
-        }
-      }
+    if (!accessToken && !refreshToken) {
+      next();
+    } else if (!accessToken && refreshToken) {
       try {
-        const decoded = jwt.verify(
-          accessToken,
+        decoded = jwt.verify(
+          refreshToken,
           process.env.SIGNUP_TOKEN_SECRET as string
-        ) as { id: string };
+        ) as { id: string; email: string };
+
+        const user = await getRepository(User).findOne({ id: decoded.id });
+        if (user?.id !== decoded.id) throw new Error(FORBIDDEN);
+        if (user?.isLogout) throw new Error(FORBIDDEN);
+
+        const newAccessToken = generateToken({ id: decoded.id });
+        req.user = { id: decoded.id };
 
         const bookmarkFlag = await bookmarkService.checkBookmarked(
           decoded.id,
           studyid
         );
         const appliedFlag = await checkApplied(studyid, decoded.id);
+        await studyService.updateStudyViews(study);
+
+        return res
+          .cookie('accessToken', newAccessToken, {
+            expires: new Date(Date.now() + 3 * 3600 * 1000),
+            domain: 'caustudy.com',
+            sameSite: 'none',
+            secure: true,
+          })
+          .status(200)
+          .json({
+            ...study,
+            bookmarked: bookmarkFlag ? true : false,
+            applied: appliedFlag ? true : false,
+            isLogIn: true,
+          });
+      } catch (e) {
+        if ((e as Error).message === FORBIDDEN) {
+          return res.status(403).json({ message: (e as Error).message });
+        } else {
+          if (decoded?.id) await logoutUserById(decoded.id);
+          next();
+        }
+      }
+    } else {
+      try {
+        decoded = jwt.verify(
+          accessToken,
+          process.env.SIGNUP_TOKEN_SECRET as string
+        ) as { id: string };
+        req.user = { id: decoded.id };
+
+        const bookmarkFlag = await bookmarkService.checkBookmarked(
+          decoded.id,
+          studyid
+        );
+        const appliedFlag = await checkApplied(studyid, decoded.id);
+        await studyService.updateStudyViews(study);
+
         return res.status(200).json({
           ...study,
           bookmarked: bookmarkFlag ? true : false,
@@ -312,18 +304,35 @@ const getStudybyId = async (req: Request, res: Response) => {
           isLogIn: true,
         });
       } catch (e) {
-        // logout
-        return res.status(200).json({
-          ...study,
-          bookmarked: false,
-          applied: false,
-          isLogIn: false,
-        });
+        if (decoded?.id) await logoutUserById(decoded.id);
+        next();
       }
     }
-    return res
-      .status(200)
-      .json({ ...study, bookmarked: false, applied: false, isLogIn: false });
+  } catch (e) {
+    if ((e as Error).message === NOT_FOUND) {
+      return res.status(404).json({ message: NOT_FOUND });
+    } else {
+      return res.status(500).json({ message: (e as Error).message });
+    }
+  }
+};
+
+const getStudybyId = async (req: Request, res: Response) => {
+  const NOT_FOUND = '데이터베이스에 일치하는 요청값이 없습니다';
+
+  try {
+    const { studyid } = req.params;
+    const study = await studyService.findStudyById(studyid);
+    if (!study) throw new Error(NOT_FOUND);
+
+    await studyService.updateStudyViews(study);
+
+    return res.status(200).json({
+      ...study,
+      bookmarked: false,
+      applied: false,
+      isLogIn: false,
+    });
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
       return res.status(404).json({ message: NOT_FOUND });
@@ -335,6 +344,7 @@ const getStudybyId = async (req: Request, res: Response) => {
 
 const updateStudy = async (req: Request, res: Response) => {
   const BAD_REQUEST = '요청값이 유효하지 않음';
+  const FORBIDDEN = '접근 권한이 없습니다';
   const NOT_FOUND = '데이터베이스에 일치하는 요청값이 없습니다';
 
   try {
@@ -353,37 +363,55 @@ const updateStudy = async (req: Request, res: Response) => {
     Object.keys(req.body).forEach((key) => {
       if (!allowedFields.includes(key)) throw new Error(BAD_REQUEST);
     });
-    if (!req.body.weekday.length || !req.body.location.length)
-      throw new Error(BAD_REQUEST);
-    req.body.weekday.forEach((value: string) => {
-      if (!(Object.values(WeekDayEnum) as string[]).includes(value))
+    if (req.body.weekday) {
+      if (!req.body.weekday.length) throw new Error(BAD_REQUEST);
+      req.body.weekday.forEach((value: string) => {
+        if (!(Object.values(WeekDayEnum) as string[]).includes(value))
+          throw new Error(BAD_REQUEST);
+      });
+    }
+    if (req.body.frequency) {
+      if (
+        !(Object.values(FrequencyEnum) as string[]).includes(req.body.frequency)
+      )
         throw new Error(BAD_REQUEST);
-    });
-    if (
-      !(Object.values(FrequencyEnum) as string[]).includes(req.body.frequency)
-    )
-      throw new Error(BAD_REQUEST);
-    req.body.location.forEach((value: string) => {
-      if (!(Object.values(LocationEnum) as string[]).includes(value))
-        throw new Error(BAD_REQUEST);
-    });
+    }
+    if (req.body.location) {
+      if (!req.body.location.length) throw new Error(BAD_REQUEST);
+      req.body.location.forEach((value: string) => {
+        if (!(Object.values(LocationEnum) as string[]).includes(value))
+          throw new Error(BAD_REQUEST);
+      });
+    }
     if (req.body.dueDate) {
       const due = new Date(req.body.dueDate);
       const now = new Date();
-
-      if (due.toISOString().split('T')[0] < now.toISOString().split('T')[0]) {
+      if (due.toISOString().split('T')[0] < now.toISOString().split('T')[0])
         throw new Error(BAD_REQUEST);
-      }
     }
 
     const study = await studyService.findStudyById(studyid);
-    if (!study) {
-      throw new Error(NOT_FOUND);
-    }
-    await studyService.updateStudy(req.body, study);
+    if (!study) throw new Error(NOT_FOUND);
+
+    const userId = (req.user as { id: string }).id;
+    if (study.HOST_ID !== userId) throw new Error(FORBIDDEN);
+
+    await studyService.updateStudy(
+      {
+        title: req.body.title ?? study.title,
+        studyAbout: req.body.studyAbout ?? study.studyAbout,
+        weekday: req.body.weekday ?? study.weekday,
+        frequency: req.body.frequency ?? study.frequency,
+        location: req.body.location ?? study.location,
+        capacity: req.body.capacity ?? study.capacity,
+        categoryCode: req.body.categoryCode ?? study.categoryCode,
+        dueDate: req.body.dueDate ?? study.dueDate,
+      },
+      studyid
+    );
 
     if (process.env.NODE_ENV !== 'test') {
-      const users = await findAllByStudyId(studyid);
+      const users = await findAllStudyUserByStudyId(studyid);
       if (users.length !== 0) {
         for (const user of users) {
           await createStudyNoti({
@@ -395,7 +423,6 @@ const updateStudy = async (req: Request, res: Response) => {
           });
         }
       }
-
       if (req.body.dueDate) {
         const due = new Date(req.body.dueDate);
         schedules[`${study.id}`].stop();
@@ -409,6 +436,8 @@ const updateStudy = async (req: Request, res: Response) => {
   } catch (e) {
     if ((e as Error).message === BAD_REQUEST) {
       return res.status(400).json({ message: BAD_REQUEST });
+    } else if ((e as Error).message === FORBIDDEN) {
+      return res.status(403).json({ message: FORBIDDEN });
     } else if ((e as Error).message === NOT_FOUND) {
       return res.status(404).json({ message: NOT_FOUND });
     } else {
@@ -418,19 +447,38 @@ const updateStudy = async (req: Request, res: Response) => {
 };
 
 const deleteStudy = async (req: Request, res: Response) => {
+  const FORBIDDEN = '접근 권한이 없습니다';
   const NOT_FOUND = '데이터베이스에 일치하는 요청값이 없습니다';
 
   try {
     const { studyid } = req.params;
     const study = await studyService.findStudyById(studyid);
+    if (!study) throw new Error(NOT_FOUND);
 
-    if (!study) {
-      throw new Error(NOT_FOUND);
+    const userId = (req.user as { id: string }).id;
+    if (study.HOST_ID !== userId) throw new Error(FORBIDDEN);
+
+    await studyService.deleteStudy(studyid);
+
+    if (process.env.NODE_ENV !== 'test') {
+      const users = await findAllStudyUserByStudyId(studyid);
+      if (users.length !== 0) {
+        for (const user of users) {
+          await createStudyNoti({
+            id: studyid,
+            userId: user.USER_ID,
+            title: '모집 취소',
+            about: '스터디가 삭제되었어요:(',
+            type: NotiTypeEnum.DELETED,
+          });
+        }
+      }
     }
-    await studyService.deleteStudy(study);
     return res.status(200).json({ message: '스터디 삭제 성공' });
   } catch (e) {
-    if ((e as Error).message === NOT_FOUND) {
+    if ((e as Error).message === FORBIDDEN) {
+      return res.status(403).json({ message: FORBIDDEN });
+    } else if ((e as Error).message === NOT_FOUND) {
       return res.status(404).json({ message: NOT_FOUND });
     } else {
       return res.status(500).json({ message: (e as Error).message });
@@ -496,13 +544,17 @@ const searchStudy = async (req: Request, res: Response) => {
 
 const closeStudy = async (req: Request, res: Response) => {
   const BAD_REQUEST = '잘못된 요청입니다';
+  const FORBIDDEN = '접근 권한이 없습니다';
   const NOT_FOUND = '데이터베이스에 일치하는 요청값이 없습니다';
 
   try {
     const { studyid } = req.params;
     const study = await studyService.findStudyById(studyid);
-
     if (!study) throw new Error(NOT_FOUND);
+
+    const userId = (req.user as { id: string }).id;
+    if (study.HOST_ID !== userId) throw new Error(FORBIDDEN);
+
     if (study.isOpen) {
       if (process.env.NODE_ENV !== 'test') {
         await scheduleJob(study);
@@ -517,6 +569,8 @@ const closeStudy = async (req: Request, res: Response) => {
   } catch (e) {
     if ((e as Error).message === BAD_REQUEST) {
       return res.status(400).json({ message: BAD_REQUEST });
+    } else if ((e as Error).message === FORBIDDEN) {
+      return res.status(403).json({ message: FORBIDDEN });
     } else if ((e as Error).message === NOT_FOUND) {
       return res.status(404).json({ message: NOT_FOUND });
     } else {
@@ -528,6 +582,7 @@ const closeStudy = async (req: Request, res: Response) => {
 export default {
   getAllStudy,
   createStudy,
+  getStudybyIdWithLogIn,
   getStudybyId,
   updateStudy,
   deleteStudy,
@@ -713,6 +768,14 @@ export default {
  *                isLogIn:
  *                  type: boolean
  *                  description: "유저가 현재 로그인 상태인지 아닌지에 대한 여부"
+ *        403:
+ *          description: "접근 권한이 없는 경우입니다"
+ *          schema:
+ *            type: object
+ *            properties:
+ *              message:
+ *                type: string
+ *                example: "접근 권한이 없습니다"
  *        404:
  *          description: "전달한 studyid가 데이터베이스에 없는 경우입니다"
  *          schema:
@@ -809,6 +872,14 @@ export default {
  *              message:
  *                type: string
  *                example: "로그인 필요"
+ *        403:
+ *          description: "스터디의 호스트(작성자)가 아닌 경우입니다"
+ *          schema:
+ *            type: object
+ *            properties:
+ *              message:
+ *                type: string
+ *                example: "접근 권한이 없습니다"
  *        404:
  *          description: "전달한 studyid가 데이터베이스에 없는 경우입니다"
  *          schema:
@@ -847,6 +918,14 @@ export default {
  *              message:
  *                type: string
  *                example: "로그인 필요"
+ *        403:
+ *          description: "스터디의 호스트(작성자)가 아닌 경우입니다"
+ *          schema:
+ *            type: object
+ *            properties:
+ *              message:
+ *                type: string
+ *                example: "접근 권한이 없습니다"
  *        404:
  *          description: "전달한 studyid가 데이터베이스에 없는 경우입니다"
  *          schema:
@@ -894,6 +973,14 @@ export default {
  *              message:
  *                type: string
  *                example: "로그인 필요"
+ *        403:
+ *          description: "스터디의 호스트(작성자)가 아닌 경우입니다"
+ *          schema:
+ *            type: object
+ *            properties:
+ *              message:
+ *                type: string
+ *                example: "접근 권한이 없습니다"
  *        404:
  *          description: "전달한 studyid가 데이터베이스에 없는 경우입니다"
  *          schema:

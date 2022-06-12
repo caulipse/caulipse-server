@@ -10,6 +10,7 @@ export enum NotiTypeEnum {
   ACCEPT,
   REJECT,
   CLOSED,
+  DELETED,
   NEW_NOTICE = 201,
 }
 

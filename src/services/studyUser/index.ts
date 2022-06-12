@@ -24,12 +24,12 @@ export const saveStudyUserRecord = async ({
     .execute();
 };
 
-export const findAllByStudyId = async (studyId: string) => {
+export const findAllStudyUserByStudyId = async (studyId: string) => {
   return await getRepository(StudyUser)
-    .createQueryBuilder()
-    .select()
-    .where('STUDY_ID = :id', { id: studyId })
-    .execute();
+    .createQueryBuilder('studyUser')
+    .select('studyUser.USER_ID')
+    .where('studyUser.STUDY_ID = :studyId', { studyId })
+    .getMany();
 };
 
 export const findAllIfParticipatedByUserId = async (userId: string) => {

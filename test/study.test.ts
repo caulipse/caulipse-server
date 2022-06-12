@@ -20,6 +20,7 @@ import StudyUser from '../src/entity/StudyUserEntity';
 
 let conn: Connection;
 let userid: string;
+let userid2: string;
 let studyid: string;
 
 beforeAll(async () => {
@@ -56,6 +57,34 @@ beforeAll(async () => {
   profile.link3 = 'user_link3';
   profile.image = 'image';
   await getRepository(UserProfile).save(profile);
+
+  const user2 = new User();
+  userid2 = randomUUID();
+  user2.id = userid2;
+  user2.email = 'user@gmail.com';
+  user2.password = bcrypt.hashSync('user', 10);
+  user2.isLogout = false;
+  user2.token = '';
+  user2.role = UserRoleEnum.USER;
+  await getRepository(User).save(user2);
+
+  const profile2 = new UserProfile();
+  profile2.id = user2;
+  profile2.email = user2.email;
+  profile2.userName = 'user2';
+  profile2.dept = 'dept2';
+  profile2.grade = 2;
+  profile2.bio = 'bio2';
+  profile2.userAbout = 'about2';
+  profile2.showDept = false;
+  profile2.showGrade = false;
+  profile2.onBreak = false;
+  profile2.categories = ['102'];
+  profile2.link1 = 'user_link1';
+  profile2.link2 = 'user_link2';
+  profile2.link3 = 'user_link3';
+  profile2.image = 'image2';
+  await getRepository(UserProfile).save(profile2);
 });
 
 afterAll(async () => {
@@ -322,11 +351,13 @@ describe('GET /api/study/:studyid', () => {
   beforeEach(async () => {
     // login
     const res = await request(app).post('/api/user/login').send({
-      email: 'test@gmail.com',
-      password: 'test',
+      email: 'user@gmail.com',
+      password: 'user',
     });
     cookies = res.headers['set-cookie'];
+  });
 
+  it('각 studyid에 따라 모든 스터디 상세 정보 반환 (로그인O)', async () => {
     // bookmark
     await request(app)
       .post(`/api/study/${studyid}/bookmark`)
@@ -334,13 +365,14 @@ describe('GET /api/study/:studyid', () => {
       .send();
 
     // apply
-    await request(app)
-      .post(`/api/study/${studyid}/user`)
-      .set('Cookie', cookies)
-      .send({ tempBio: 'hello' });
-  });
+    const studyUser = new StudyUser();
+    studyUser.STUDY_ID = studyid;
+    studyUser.USER_ID = userid2;
+    studyUser.createdAt = new Date();
+    studyUser.isAccepted = false;
+    studyUser.tempBio = 'hello';
+    await getRepository(StudyUser).save(studyUser);
 
-  it('각 studyid에 따라 모든 스터디 상세 정보 반환 (로그인O)', async () => {
     const res = await request(app)
       .get(`/api/study/${studyid}`)
       .set('Cookie', cookies);
@@ -362,14 +394,18 @@ describe('GET /api/study/:studyid', () => {
     expect(res.body.applied).toBeFalsy();
   });
 
-  it('요청된 studyid가 데이터베이스에 존재하지 않으면 404 응답', async () => {
-    const res = await request(app).get('/api/study/wrong');
+  it('요청된 studyid가 데이터베이스에 존재하지 않으면 404 응답 (로그인O)', async () => {
+    const res = await request(app)
+      .get('/api/study/wrong')
+      .set('Cookie', cookies);
 
     expect(res.status).toBe(404);
   });
 
-  afterEach(async () => {
-    await getRepository(StudyUser).createQueryBuilder().delete().execute();
+  it('요청된 studyid가 데이터베이스에 존재하지 않으면 404 응답 (로그인X)', async () => {
+    const res = await request(app).get('/api/study/wrong');
+
+    expect(res.status).toBe(404);
   });
 });
 
@@ -395,12 +431,30 @@ describe('PATCH /api/study/:studyid', () => {
         weekday: [WeekDayEnum.WED, WeekDayEnum.THU],
         frequency: FrequencyEnum.MORE,
         location: [LocationEnum.LIBRARY, LocationEnum.NO_CONTACT],
-        capacity: 10,
-        categoryCode: 102,
         dueDate: new Date(date.getTime() + 60 * 60 * 7),
       });
 
     expect(res.status).toBe(200);
+
+    const study = await getRepository(Study)
+      .createQueryBuilder('study')
+      .addSelect('study.dueDate')
+      .leftJoinAndSelect('study.hostId', 'UserProfile')
+      .where('study.id = :id', { id: studyid })
+      .getOne();
+
+    expect(study?.title).toEqual('STUDY TITLE');
+    expect(study?.studyAbout).toEqual('STUDY ABOUT');
+    expect(study?.weekday).toEqual(
+      expect.arrayContaining([WeekDayEnum.WED, WeekDayEnum.THU])
+    );
+    expect(study?.frequency).toEqual(FrequencyEnum.MORE);
+    expect(study?.location).toEqual(
+      expect.arrayContaining([LocationEnum.LIBRARY, LocationEnum.NO_CONTACT])
+    );
+
+    expect(study?.capacity).toEqual(8);
+    expect(study?.categoryCode).toEqual(101);
   });
 
   it('유효하지 않은 body를 포함한 요청을 받으면 400 응답', async () => {
@@ -431,8 +485,6 @@ describe('PATCH /api/study/:studyid', () => {
         weekday: [WeekDayEnum.WED, WeekDayEnum.THU],
         frequency: FrequencyEnum.MORE,
         location: [LocationEnum.LIBRARY, LocationEnum.NO_CONTACT],
-        capacity: 10,
-        categoryCode: 102,
         dueDate: new Date(date.getTime() + 60 * 60 * 7),
       });
 
@@ -450,8 +502,6 @@ describe('PATCH /api/study/:studyid', () => {
         weekday: [WeekDayEnum.WED, WeekDayEnum.THU],
         frequency: FrequencyEnum.MORE,
         location: [LocationEnum.LIBRARY, LocationEnum.NO_CONTACT],
-        capacity: 10,
-        categoryCode: 102,
         dueDate: new Date(date.getTime() + 60 * 60 * 7),
       });
 

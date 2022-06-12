@@ -3,7 +3,6 @@ import {
   createNotice,
   deleteNotice,
   findAllNotice,
-  findAllUser,
   findNoticeById,
   findNoticeCount,
   updateNoticeById,
@@ -12,7 +11,7 @@ import {
 import { UserRoleEnum } from '../../entity/UserEntity';
 import { createNoticeNoti, NotiTypeEnum } from '../../services/notification';
 import { temp_findUserProfileById } from '../../services/user/profile';
-import { findOnlyUserRoleById } from '../../services/user';
+import { findAllUser, findOnlyUserRoleById } from '../../services/user';
 
 export default {
   async findAllNotice(req: Request, res: Response) {
@@ -90,10 +89,10 @@ export default {
       if (process.env.NODE_ENV !== 'test') {
         const users = await findAllUser();
         if (users.length !== 0) {
-          for (const u of users) {
+          for (const user of users) {
             await createNoticeNoti({
               id,
-              userId: u.id,
+              userId: user.id,
               title: '새로운 공지',
               about: '중대본으로부터 새로운 공지글이 등록되었어요.',
               type: NotiTypeEnum.NEW_NOTICE,
