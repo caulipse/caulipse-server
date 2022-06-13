@@ -1,12 +1,117 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import commentService from '../../../services/comment';
 import { createStudyNoti, NotiTypeEnum } from '../../../services/notification';
 import studyService from '../../../services/study';
 import { temp_findUserProfileById } from '../../../services/user/profile';
 import metooService from '../../../services/comment/metoo';
-import { refresh } from '../../../middlewares/auth';
+import { generateToken } from '../../../middlewares/auth';
 import Comment from '../../../entity/CommentEntity';
+import { getRepository } from 'typeorm';
+import User from '../../../entity/UserEntity';
+import { logoutUserById } from '../../../services/user';
+
+const getAllCommentWithLogIn = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const FORBIDDEN = '접근 권한이 없습니다';
+  const NOT_FOUND = '데이터베이스에 일치하는 요청값이 없습니다';
+
+  try {
+    const { studyid } = req.params;
+    const study = await studyService.findStudyById(studyid);
+    const comments = await commentService.getAllByStudy(studyid);
+    if (!study || !comments) throw new Error(NOT_FOUND);
+
+    const { accessToken, refreshToken } = req.cookies;
+    let decoded;
+    const result: Array<Comment & { metoo: boolean }> = [];
+
+    if (!accessToken && !refreshToken) {
+      next();
+    } else if (!accessToken && refreshToken) {
+      try {
+        decoded = jwt.verify(
+          refreshToken,
+          process.env.SIGNUP_TOKEN_SECRET as string
+        ) as { id: string; email: string };
+
+        const user = await getRepository(User).findOne({ id: decoded.id });
+        if (user?.id !== decoded.id) throw new Error(FORBIDDEN);
+        if (user?.isLogout) throw new Error(FORBIDDEN);
+
+        const newAccessToken = generateToken({ id: decoded.id });
+        req.user = { id: decoded.id };
+
+        for (const comment of comments) {
+          if (await metooService.checkMetoo(decoded.id, comment.id)) {
+            result.push({
+              ...comment,
+              metoo: true,
+            });
+          } else {
+            result.push({
+              ...comment,
+              metoo: false,
+            });
+          }
+        }
+
+        return res
+          .cookie('accessToken', newAccessToken, {
+            expires: new Date(Date.now() + 3 * 3600 * 1000),
+            domain: 'caustudy.com',
+            sameSite: 'none',
+            secure: true,
+          })
+          .status(200)
+          .json(result);
+      } catch (e) {
+        if ((e as Error).message === FORBIDDEN) {
+          return res.status(403).json({ message: (e as Error).message });
+        } else {
+          if (decoded?.id) await logoutUserById(decoded.id);
+          next();
+        }
+      }
+    } else {
+      try {
+        decoded = jwt.verify(
+          accessToken,
+          process.env.SIGNUP_TOKEN_SECRET as string
+        ) as { id: string };
+        req.user = { id: decoded.id };
+
+        for (const comment of comments) {
+          if (await metooService.checkMetoo(decoded.id, comment.id)) {
+            result.push({
+              ...comment,
+              metoo: true,
+            });
+          } else {
+            result.push({
+              ...comment,
+              metoo: false,
+            });
+          }
+        }
+
+        return res.status(200).json(result);
+      } catch (e) {
+        if (decoded?.id) await logoutUserById(decoded.id);
+        next();
+      }
+    }
+  } catch (e) {
+    if ((e as Error).message === NOT_FOUND) {
+      return res.status(404).json({ message: (e as Error).message });
+    } else {
+      return res.status(500).json({ message: (e as Error).message });
+    }
+  }
+};
 
 const getAllComment = async (req: Request, res: Response) => {
   const NOT_FOUND = '데이터베이스에 일치하는 요청값이 없습니다';
@@ -16,64 +121,22 @@ const getAllComment = async (req: Request, res: Response) => {
     const study = await studyService.findStudyById(studyid);
     const comments = await commentService.getAllByStudy(studyid);
 
-    if (!study || !comments) {
-      throw new Error(NOT_FOUND);
-    }
+    if (!study || !comments) throw new Error(NOT_FOUND);
 
-    /* checkToken */
-    let { accessToken, refreshToken } = req.cookies;
-
-    const logoutResult: Array<Comment & { metoo: boolean }> = [];
-    comments.forEach((value) => {
-      logoutResult.push({
-        ...value,
+    const result: Array<Comment & { metoo: boolean }> = [];
+    comments.forEach((comment) => {
+      result.push({
+        ...comment,
         metoo: false,
       });
     });
 
-    if (!accessToken && !refreshToken) {
-      return res.status(200).json(logoutResult);
-    }
-
-    if (!accessToken && refreshToken) {
-      await refresh(req, res);
-
-      if (!req.cookies.accessToken) return;
-      else {
-        accessToken = req.cookies.accessToken;
-        refreshToken = req.cookies.refreshToken;
-      }
-    }
-
-    try {
-      const decoded = jwt.verify(
-        accessToken,
-        process.env.SIGNUP_TOKEN_SECRET as string
-      ) as { id: string };
-      req.user = { id: decoded.id };
-
-      const result: Array<Comment & { metoo: boolean }> = [...logoutResult];
-      for (let i = 0; i < result.length; i++) {
-        if (await metooService.checkMetoo(decoded.id, result[i].id)) {
-          result[i] = {
-            ...result[i],
-            metoo: true,
-          };
-        }
-      }
-      return res.status(200).json(result);
-    } catch {
-      return res.status(200).json(logoutResult);
-    }
+    return res.status(200).json(result);
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({
-        message: NOT_FOUND,
-      });
+      return res.status(404).json({ message: (e as Error).message });
     } else {
-      return res.status(500).json({
-        message: (e as Error).message,
-      });
+      return res.status(500).json({ message: (e as Error).message });
     }
   }
 };
@@ -201,7 +264,13 @@ const deleteComment = async (req: Request, res: Response) => {
   }
 };
 
-export default { getAllComment, createComment, updateComment, deleteComment };
+export default {
+  getAllCommentWithLogIn,
+  getAllComment,
+  createComment,
+  updateComment,
+  deleteComment,
+};
 
 /**
  * @swagger
@@ -232,6 +301,14 @@ export default { getAllComment, createComment, updateComment, deleteComment };
  *                    metoo:
  *                      type: boolean
  *                      description: "유저가 각 문의글에 대하여 나도 궁금해요를 등록한 상태인지 아닌지에 대한 여부"
+ *        403:
+ *          description: "접근 권한이 없는 경우입니다"
+ *          schema:
+ *            type: object
+ *            properties:
+ *              message:
+ *                type: string
+ *                example: "접근 권한이 없습니다"
  *        404:
  *          description: "전달한 studyid가 데이터베이스에 없는 경우입니다"
  *          schema:

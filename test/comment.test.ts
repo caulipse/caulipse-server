@@ -91,6 +91,40 @@ afterAll(async () => {
   conn.close();
 });
 
+describe('GET /api/:studyid/comment - 댓글 X', () => {
+  let cookies = '';
+  beforeEach(async () => {
+    // login
+    const res = await request(app).post('/api/user/login').send({
+      email: 'test@gmail.com',
+      password: 'test',
+    });
+    cookies = res.headers['set-cookie'];
+  });
+
+  it('요청된 studyid에 해당하는 스터디의 모든 문의글 목록 조회 (로그인O)', async () => {
+    const res = await request(app)
+      .get(`/api/study/${studyid}/comment`)
+      .set('Cookie', cookies);
+
+    expect(res.status).toBe(200);
+    expect(res.body.length).toEqual(0);
+  });
+
+  it('요청된 studyid에 해당하는 스터디의 모든 문의글 목록 조회 (로그인X)', async () => {
+    const res = await request(app).get(`/api/study/${studyid}/comment`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.length).toEqual(0);
+  });
+
+  it('요청된 studyid가 데이터베이스에 존재하지 않으면 404 응답', async () => {
+    const res = await request(app).get('/api/study/wrong/comment');
+
+    expect(res.status).toBe(404);
+  });
+});
+
 describe('POST /api/study/:studyid/comment', () => {
   let cookies = '';
   beforeEach(async () => {
@@ -160,7 +194,7 @@ describe('POST /api/study/:studyid/comment', () => {
   });
 });
 
-describe('GET /api/:studyid/comment', () => {
+describe('GET /api/:studyid/comment - 댓글 O', () => {
   let cookies = '';
   beforeEach(async () => {
     // login
