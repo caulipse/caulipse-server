@@ -16,7 +16,7 @@ export default class Notice {
   @Column('varchar', { name: 'TITLE', length: 40 })
   title!: string;
 
-  @Column('varchar', { name: 'ABOUT', length: 500 })
+  @Column('varchar', { name: 'ABOUT', length: 2000 })
   about!: string;
 
   @CreateDateColumn({ name: 'CREATED_AT' })

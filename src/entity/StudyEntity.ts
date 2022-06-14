@@ -46,7 +46,7 @@ export default class Study {
   @Column('varchar', { name: 'TITLE', length: 40 })
   title!: string;
 
-  @Column('varchar', { name: 'STUDY_ABOUT', length: 500 })
+  @Column('varchar', { name: 'STUDY_ABOUT', length: 2000 })
   studyAbout!: string;
 
   @Column('set', { enum: WeekDayEnum, name: 'WEEKDAY' })
