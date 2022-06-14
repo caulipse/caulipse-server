@@ -312,11 +312,10 @@ describe('DELETE /api/study/:studyid/comment/:commentid', () => {
       .set('Cookie', cookies)
       .send();
 
-    const comment = await commentService.findCommentById(commentid1);
-
     expect(res.status).toBe(200);
-    expect(comment?.user).toBeUndefined();
-    expect(comment?.content).toEqual('삭제된 문의글입니다.');
+    expect(res.body.user).toBeNull();
+    expect(res.body.content).toEqual('삭제된 문의글입니다.');
+    expect(res.body.updateRequired).toBeTruthy();
   });
 
   it('대댓글을 삭제할 때는 바로 데이터베이스에서 삭제', async () => {
@@ -326,6 +325,7 @@ describe('DELETE /api/study/:studyid/comment/:commentid', () => {
       .send();
 
     expect(res.status).toBe(200);
+    expect(res.body.updateRequired).toBeFalsy();
   });
 
   it('대댓글이 남아있지 않은 댓글을 삭제할 때는 바로 데이터베이스에서 삭제', async () => {
@@ -335,5 +335,6 @@ describe('DELETE /api/study/:studyid/comment/:commentid', () => {
       .send();
 
     expect(res.status).toBe(200);
+    expect(res.body.updateRequired).toBeFalsy();
   });
 });

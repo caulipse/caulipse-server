@@ -54,27 +54,29 @@ const updateComment = async (content: string, comment: Comment) => {
   await getRepository(Comment).save(comment);
 };
 
-const deleteComment = async (comment: Comment) => {
-  const repo = getRepository(Comment);
-  if (comment.isNested === false) {
-    // 댓글인 경우
-    const reply = await repo
-      .createQueryBuilder('comment')
-      .select('comment.nestedComments')
-      .getCount();
+const checkReply = async (commentId: string) => {
+  return await getRepository(Comment)
+    .createQueryBuilder('comment')
+    .select('comment.nestedComments')
+    .where('comment.NESTED_COMMENT_ID = :commentId', { commentId })
+    .getCount();
+};
 
+const deleteComment = async (comment: Comment, reply: number) => {
+  if (!comment.isNested) {
+    // 댓글인 경우
     if (reply === 0) {
       // 대댓글이 아예 존재하지 않는 경우
-      await repo.remove(comment);
-    } else if (reply > 1) {
+      return await getRepository(Comment).remove(comment);
+    } else if (reply >= 1) {
       // 대댓글이 남아있는 경우
       comment.user = null;
       comment.content = '삭제된 문의글입니다.';
-      await repo.save(comment);
+      return await getRepository(Comment).save(comment);
     }
   } else {
     // 대댓글인 경우
-    await repo.remove(comment);
+    return await getRepository(Comment).remove(comment);
   }
 };
 
@@ -83,5 +85,6 @@ export default {
   getAllByStudy,
   createComment,
   updateComment,
+  checkReply,
   deleteComment,
 };

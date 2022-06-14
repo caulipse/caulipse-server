@@ -181,22 +181,39 @@ const deleteComment = async (req: Request, res: Response) => {
 
   try {
     const { commentid } = req.params;
-    const comment = await commentService.findCommentById(commentid);
 
-    if (!comment) {
-      throw new Error(NOT_FOUND);
+    const comment = await commentService.findCommentById(commentid);
+    if (!comment) throw new Error(NOT_FOUND);
+
+    const reply = await commentService.checkReply(comment.id);
+    const result = await commentService.deleteComment(comment, reply);
+
+    if (!comment.isNested) {
+      if (reply == 0) {
+        return res.status(200).json({
+          ...result,
+          updateRequired: false,
+          message: '문의글 삭제 성공',
+        });
+      } else if (reply >= 1) {
+        return res.status(200).json({
+          ...result,
+          updateRequired: true,
+          message: '문의글 삭제 성공',
+        });
+      }
+    } else {
+      return res.status(200).json({
+        ...result,
+        updateRequired: false,
+        message: '댓글 삭제 성공',
+      });
     }
-    await commentService.deleteComment(comment);
-    return res.status(200).json({ message: '문의글 삭제 성공' });
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({
-        message: NOT_FOUND,
-      });
+      return res.status(404).json({ message: NOT_FOUND });
     } else {
-      return res.status(500).json({
-        message: (e as Error).message,
-      });
+      return res.status(500).json({ message: (e as Error).message });
     }
   }
 };
@@ -385,13 +402,18 @@ export default { getAllComment, createComment, updateComment, deleteComment };
  *        format: uuid
  *      responses:
  *        200:
- *          description: "올바른 요청 (대댓글은 바로 삭제되고, 댓글은 대댓글이 달려있으면 사용자 아이디는 undefined로 내용은 삭제 관련 문구로 업데이트되고 대댓글이 달려있지 않으면 바로 삭제됨)"
+ *          description: "올바른 요청 (대댓글이 남아있는 댓글을 제외한 나머지는 바로 삭제 처리)"
  *          schema:
- *            type: object
- *            properties:
- *              message:
- *                type: string
- *                example: "문의글 삭제 성공"
+ *            allOf:
+ *            - $ref: "#/definitions/Comment"
+ *            - type: object
+ *              properties:
+ *                updateRequired:
+ *                  type: boolean
+ *                  description: 대댓글이 남아있는 댓글의 경우(true) content 수정 및 사용자 수정(null)에 따른 변경 필요
+ *                message:
+ *                  type: string
+ *                  example: "문의글 삭제 성공"
  *        401:
  *          description: "로그인이 되어있지 않은 경우"
  *          schema:
