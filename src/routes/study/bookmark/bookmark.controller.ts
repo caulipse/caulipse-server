@@ -19,16 +19,19 @@ const registerBookmark = async (req: Request, res: Response) => {
     }
 
     await bookmarkService.registerBookmark(bookmarks, user);
-    return res.status(201).json({ message: '북마크 생성 성공' });
+    res.status(201).json({ message: '북마크 생성 성공' });
+    return;
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({
+      res.status(404).json({
         message: NOT_FOUND,
       });
+      return;
     } else {
-      return res.status(500).json({
+      res.status(500).json({
         message: (e as Error).message,
       });
+      return;
     }
   }
 };
@@ -46,16 +49,19 @@ const deleteBookmark = async (req: Request, res: Response) => {
       throw new Error(NOT_FOUND);
     }
     await bookmarkService.deleteBookmark(study, user);
-    return res.status(200).json({ message: '북마크 취소 성공' });
+    res.status(200).json({ message: '북마크 취소 성공' });
+    return;
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({
+      res.status(404).json({
         message: NOT_FOUND,
       });
+      return;
     } else {
-      return res.status(500).json({
+      res.status(500).json({
         message: (e as Error).message,
       });
+      return;
     }
   }
 };

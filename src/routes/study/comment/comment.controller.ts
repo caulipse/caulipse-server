@@ -59,7 +59,7 @@ const getAllCommentWithLogIn = async (
           }
         }
 
-        return res
+        res
           .cookie('accessToken', newAccessToken, {
             expires: new Date(Date.now() + 3 * 3600 * 1000),
             domain: 'caustudy.com',
@@ -68,9 +68,11 @@ const getAllCommentWithLogIn = async (
           })
           .status(200)
           .json(result);
+        return;
       } catch (e) {
         if ((e as Error).message === FORBIDDEN) {
-          return res.status(403).json({ message: (e as Error).message });
+          res.status(403).json({ message: (e as Error).message });
+          return;
         } else {
           if (decoded?.id) await logoutUserById(decoded.id);
           next();
@@ -98,7 +100,8 @@ const getAllCommentWithLogIn = async (
           }
         }
 
-        return res.status(200).json(result);
+        res.status(200).json(result);
+        return;
       } catch (e) {
         if (decoded?.id) await logoutUserById(decoded.id);
         next();
@@ -106,9 +109,11 @@ const getAllCommentWithLogIn = async (
     }
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({ message: (e as Error).message });
+      res.status(404).json({ message: (e as Error).message });
+      return;
     } else {
-      return res.status(500).json({ message: (e as Error).message });
+      res.status(500).json({ message: (e as Error).message });
+      return;
     }
   }
 };
@@ -131,12 +136,15 @@ const getAllComment = async (req: Request, res: Response) => {
       });
     });
 
-    return res.status(200).json(result);
+    res.status(200).json(result);
+    return;
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({ message: (e as Error).message });
+      res.status(404).json({ message: (e as Error).message });
+      return;
     } else {
-      return res.status(500).json({ message: (e as Error).message });
+      res.status(500).json({ message: (e as Error).message });
+      return;
     }
   }
 };
@@ -187,20 +195,24 @@ const createComment = async (req: Request, res: Response) => {
       }
     }
 
-    return res.status(201).json({ id });
+    res.status(201).json({ id });
+    return;
   } catch (e) {
     if ((e as Error).message === BAD_REQUEST) {
-      return res.status(400).json({
+      res.status(400).json({
         message: BAD_REQUEST,
       });
+      return;
     } else if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({
+      res.status(404).json({
         message: NOT_FOUND,
       });
+      return;
     } else {
-      return res.status(500).json({
+      res.status(500).json({
         message: (e as Error).message,
       });
+      return;
     }
   }
 };
@@ -221,20 +233,24 @@ const updateComment = async (req: Request, res: Response) => {
       throw new Error(NOT_FOUND);
     }
     await commentService.updateComment(content, comment);
-    return res.status(200).json({ message: '문의글 수정 성공' });
+    res.status(200).json({ message: '문의글 수정 성공' });
+    return;
   } catch (e) {
     if ((e as Error).message === BAD_REQUEST) {
-      return res.status(400).json({
+      res.status(400).json({
         message: BAD_REQUEST,
       });
+      return;
     } else if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({
+      res.status(404).json({
         message: NOT_FOUND,
       });
+      return;
     } else {
-      return res.status(500).json({
+      res.status(500).json({
         message: (e as Error).message,
       });
+      return;
     }
   }
 };
@@ -250,16 +266,19 @@ const deleteComment = async (req: Request, res: Response) => {
       throw new Error(NOT_FOUND);
     }
     await commentService.deleteComment(comment);
-    return res.status(200).json({ message: '문의글 삭제 성공' });
+    res.status(200).json({ message: '문의글 삭제 성공' });
+    return;
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({
+      res.status(404).json({
         message: NOT_FOUND,
       });
+      return;
     } else {
-      return res.status(500).json({
+      res.status(500).json({
         message: (e as Error).message,
       });
+      return;
     }
   }
 };

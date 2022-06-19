@@ -59,12 +59,15 @@ export default {
       if (!notice) throw new Error(NOT_FOUND);
 
       await updateNoticeViews(notice);
-      return res.status(200).json(notice);
+      res.status(200).json(notice);
+      return;
     } catch (e) {
       if ((e as Error).message === NOT_FOUND) {
-        return res.status(404).json({ message: NOT_FOUND });
+        res.status(404).json({ message: NOT_FOUND });
+        return;
       } else {
-        return res.status(500).json({ message: (e as Error).message });
+        res.status(500).json({ message: (e as Error).message });
+        return;
       }
     }
   },
@@ -101,16 +104,21 @@ export default {
         }
       }
 
-      return res.status(201).json({ id });
+      res.status(201).json({ id });
+      return;
     } catch (e) {
       if ((e as Error).message === BAD_REQUEST) {
-        return res.status(400).json({ message: BAD_REQUEST });
+        res.status(400).json({ message: BAD_REQUEST });
+        return;
       } else if ((e as Error).message === FORBIDDEN) {
-        return res.status(403).json({ message: FORBIDDEN });
+        res.status(403).json({ message: FORBIDDEN });
+        return;
       } else if ((e as Error).message === NOT_FOUND) {
-        return res.status(404).json({ message: NOT_FOUND });
+        res.status(404).json({ message: NOT_FOUND });
+        return;
       } else {
-        return res.status(500).json({ message: (e as Error).message });
+        res.status(500).json({ message: (e as Error).message });
+        return;
       }
     }
   },
@@ -129,14 +137,18 @@ export default {
       if (role !== UserRoleEnum.ADMIN) throw new Error(FORBIDDEN);
 
       await deleteNotice(notice);
-      return res.status(200).json({ message: '공지사항 삭제 성공' });
+      res.status(200).json({ message: '공지사항 삭제 성공' });
+      return;
     } catch (e) {
       if ((e as Error).message === FORBIDDEN) {
-        return res.status(403).json({ message: FORBIDDEN });
+        res.status(403).json({ message: FORBIDDEN });
+        return;
       } else if ((e as Error).message === NOT_FOUND) {
-        return res.status(404).json({ message: NOT_FOUND });
+        res.status(404).json({ message: NOT_FOUND });
+        return;
       } else {
-        return res.status(500).json({ message: (e as Error).message });
+        res.status(500).json({ message: (e as Error).message });
+        return;
       }
     }
   },

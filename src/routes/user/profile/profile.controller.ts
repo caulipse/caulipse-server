@@ -239,7 +239,7 @@ export const getUserProfileById = async (req: Request, res: Response) => {
 
     const userProfile = await findUserProfileById(id);
 
-    return res.status(200).json({
+    res.status(200).json({
       message: '해당 아이디의 유저 프로필 조회 성공',
       userProfile: {
         userId: userProfile[0].userProfile_USER_ID,
@@ -262,6 +262,7 @@ export const getUserProfileById = async (req: Request, res: Response) => {
         image: userProfile[0].userProfile_IMAGE,
       },
     });
+    return;
   } catch (err) {
     console.error(err);
     res.json({ error: (err as Error).message || (err as Error).toString() });
@@ -310,7 +311,8 @@ export const updateUserProfileById = async (req: Request, res: Response) => {
     });
 
     if (result.affected === 0) throw new Error('유저 프로필 업데이트 실패');
-    else return res.status(201).json({ message: '회원 프로필 수정 성공' });
+    else res.status(201).json({ message: '회원 프로필 수정 성공' });
+    return;
   } catch (err) {
     console.error(err);
     res.json({ error: (err as Error).message || (err as Error).toString() });
@@ -322,13 +324,15 @@ const getUserNameDuplicate = async (req: Request, res: Response) => {
     const username = req.query.username as string;
     const result = await findUserProfileByUserName(username);
     if (result?.length) {
-      return res
+      res
         .status(200)
         .json({ message: '이미 존재하는 닉네임입니다.', data: false });
+      return;
     } else {
-      return res
+      res
         .status(200)
         .json({ message: '사용 가능한 닉네임입니다.', data: true });
+      return;
     }
   } catch (err) {
     console.error(err);

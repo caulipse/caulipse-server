@@ -22,16 +22,19 @@ const registerMetoo = async (req: Request, res: Response) => {
     }
 
     await metooService.registerMetoo(metoo, user);
-    return res.status(201).json({ message: '나도 궁금해요 생성 성공' });
+    res.status(201).json({ message: '나도 궁금해요 생성 성공' });
+    return;
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({
+      res.status(404).json({
         message: NOT_FOUND,
       });
+      return;
     } else {
-      return res.status(500).json({
+      res.status(500).json({
         message: (e as Error).message,
       });
+      return;
     }
   }
 };
@@ -51,16 +54,19 @@ const deleteMetoo = async (req: Request, res: Response) => {
     }
     await metooService.deleteMetoo(comment, user);
 
-    return res.status(200).json({ message: '나도 궁금해요 해제 성공' });
+    res.status(200).json({ message: '나도 궁금해요 해제 성공' });
+    return;
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({
+      res.status(404).json({
         message: NOT_FOUND,
       });
+      return;
     } else {
-      return res.status(500).json({
+      res.status(500).json({
         message: (e as Error).message,
       });
+      return;
     }
   }
 };

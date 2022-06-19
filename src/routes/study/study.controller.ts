@@ -134,22 +134,26 @@ const getAllStudy = async (req: Request, res: Response) => {
       lastpage === 0 ? total / limit : Math.trunc(total / limit) + 1;
 
     if (studies.length === 0) {
-      return res
+      res
         .status(200)
         .json({ message: '요청에 해당하는 스터디가 존재하지 않습니다' });
+      return;
     } else {
-      return res.status(200).json({
+      res.status(200).json({
         studies,
         pageNo,
         pages,
         total,
       });
+      return;
     }
   } catch (e) {
     if ((e as Error).message === BAD_REQUEST) {
-      return res.status(400).json({ message: BAD_REQUEST });
+      res.status(400).json({ message: BAD_REQUEST });
+      return;
     } else {
-      return res.status(500).json({ message: (e as Error).message });
+      res.status(500).json({ message: (e as Error).message });
+      return;
     }
   }
 };
@@ -209,14 +213,18 @@ const createStudy = async (req: Request, res: Response) => {
         );
       }
     }
-    return res.status(201).json({ id: study.id });
+    res.status(201).json({ id: study.id });
+    return;
   } catch (e) {
     if ((e as Error).message === BAD_REQUEST) {
-      return res.status(400).json({ message: BAD_REQUEST });
+      res.status(400).json({ message: BAD_REQUEST });
+      return;
     } else if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({ message: NOT_FOUND });
+      res.status(404).json({ message: NOT_FOUND });
+      return;
     } else {
-      return res.status(500).json({ message: (e as Error).message });
+      res.status(500).json({ message: (e as Error).message });
+      return;
     }
   }
 };
@@ -260,7 +268,7 @@ const getStudybyIdWithLogIn = async (
         const appliedFlag = await checkApplied(studyid, decoded.id);
         await studyService.updateStudyViews(study);
 
-        return res
+        res
           .cookie('accessToken', newAccessToken, {
             expires: new Date(Date.now() + 3 * 3600 * 1000),
             domain: 'caustudy.com',
@@ -274,9 +282,11 @@ const getStudybyIdWithLogIn = async (
             applied: appliedFlag ? true : false,
             isLogIn: true,
           });
+        return;
       } catch (e) {
         if ((e as Error).message === FORBIDDEN) {
-          return res.status(403).json({ message: (e as Error).message });
+          res.status(403).json({ message: (e as Error).message });
+          return;
         } else {
           if (decoded?.id) await logoutUserById(decoded.id);
           next();
@@ -297,12 +307,13 @@ const getStudybyIdWithLogIn = async (
         const appliedFlag = await checkApplied(studyid, decoded.id);
         await studyService.updateStudyViews(study);
 
-        return res.status(200).json({
+        res.status(200).json({
           ...study,
           bookmarked: bookmarkFlag ? true : false,
           applied: appliedFlag ? true : false,
           isLogIn: true,
         });
+        return;
       } catch (e) {
         if (decoded?.id) await logoutUserById(decoded.id);
         next();
@@ -310,9 +321,11 @@ const getStudybyIdWithLogIn = async (
     }
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({ message: NOT_FOUND });
+      res.status(404).json({ message: NOT_FOUND });
+      return;
     } else {
-      return res.status(500).json({ message: (e as Error).message });
+      res.status(500).json({ message: (e as Error).message });
+      return;
     }
   }
 };
@@ -327,17 +340,20 @@ const getStudybyId = async (req: Request, res: Response) => {
 
     await studyService.updateStudyViews(study);
 
-    return res.status(200).json({
+    res.status(200).json({
       ...study,
       bookmarked: false,
       applied: false,
       isLogIn: false,
     });
+    return;
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({ message: NOT_FOUND });
+      res.status(404).json({ message: NOT_FOUND });
+      return;
     } else {
-      return res.status(500).json({ message: (e as Error).message });
+      res.status(500).json({ message: (e as Error).message });
+      return;
     }
   }
 };
@@ -432,16 +448,21 @@ const updateStudy = async (req: Request, res: Response) => {
         );
       }
     }
-    return res.status(200).json({ message: '스터디 정보 업데이트 성공' });
+    res.status(200).json({ message: '스터디 정보 업데이트 성공' });
+    return;
   } catch (e) {
     if ((e as Error).message === BAD_REQUEST) {
-      return res.status(400).json({ message: BAD_REQUEST });
+      res.status(400).json({ message: BAD_REQUEST });
+      return;
     } else if ((e as Error).message === FORBIDDEN) {
-      return res.status(403).json({ message: FORBIDDEN });
+      res.status(403).json({ message: FORBIDDEN });
+      return;
     } else if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({ message: NOT_FOUND });
+      res.status(404).json({ message: NOT_FOUND });
+      return;
     } else {
-      return res.status(500).json({ message: (e as Error).message });
+      res.status(500).json({ message: (e as Error).message });
+      return;
     }
   }
 };
@@ -474,14 +495,18 @@ const deleteStudy = async (req: Request, res: Response) => {
         }
       }
     }
-    return res.status(200).json({ message: '스터디 삭제 성공' });
+    res.status(200).json({ message: '스터디 삭제 성공' });
+    return;
   } catch (e) {
     if ((e as Error).message === FORBIDDEN) {
-      return res.status(403).json({ message: FORBIDDEN });
+      res.status(403).json({ message: FORBIDDEN });
+      return;
     } else if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({ message: NOT_FOUND });
+      res.status(404).json({ message: NOT_FOUND });
+      return;
     } else {
-      return res.status(500).json({ message: (e as Error).message });
+      res.status(500).json({ message: (e as Error).message });
+      return;
     }
   }
 };
@@ -532,12 +557,15 @@ const searchStudy = async (req: Request, res: Response) => {
       orderBy,
     });
 
-    return res.status(200).json(studies);
+    res.status(200).json(studies);
+    return;
   } catch (e) {
     if ((e as Error).message === BAD_REQUEST) {
-      return res.status(400).json({ message: BAD_REQUEST });
+      res.status(400).json({ message: BAD_REQUEST });
+      return;
     } else {
-      return res.status(500).json({ message: (e as Error).message });
+      res.status(500).json({ message: (e as Error).message });
+      return;
     }
   }
 };
@@ -565,16 +593,21 @@ const closeStudy = async (req: Request, res: Response) => {
     } else {
       throw new Error(BAD_REQUEST);
     }
-    return res.status(200).json({ message: '스터디 마감 성공' });
+    res.status(200).json({ message: '스터디 마감 성공' });
+    return;
   } catch (e) {
     if ((e as Error).message === BAD_REQUEST) {
-      return res.status(400).json({ message: BAD_REQUEST });
+      res.status(400).json({ message: BAD_REQUEST });
+      return;
     } else if ((e as Error).message === FORBIDDEN) {
-      return res.status(403).json({ message: FORBIDDEN });
+      res.status(403).json({ message: FORBIDDEN });
+      return;
     } else if ((e as Error).message === NOT_FOUND) {
-      return res.status(404).json({ message: NOT_FOUND });
+      res.status(404).json({ message: NOT_FOUND });
+      return;
     } else {
-      return res.status(500).json({ message: (e as Error).message });
+      res.status(500).json({ message: (e as Error).message });
+      return;
     }
   }
 };

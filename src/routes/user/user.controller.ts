@@ -114,7 +114,8 @@ export default {
     try {
       const result = await updateUserById(req.params.id, req.body);
       if (result.affected === 0) throw new Error(NOT_FOUND);
-      else return res.json({ message: '회원정보 수정 성공' });
+      else res.json({ message: '회원정보 수정 성공' });
+      return;
     } catch (e) {
       if ((e as Error).message === NOT_FOUND) {
         res.status(404).json({ message: '일치하는 id값 없음' });
@@ -165,7 +166,7 @@ export default {
       if (!result) throw new Error(NOT_FOUND);
       else if (result.isLogout) throw new Error(IS_LOGOUT);
       else
-        return res.status(200).json({
+        res.status(200).json({
           message: '회원정보 조회 성공',
           data: {
             id: result.id,
@@ -173,6 +174,7 @@ export default {
             role: result.role,
           },
         });
+      return;
     } catch (e) {
       if ((e as Error).message === IS_LOGOUT) {
         res.status(401).json({ message: IS_LOGOUT });
@@ -214,17 +216,20 @@ export default {
 
       const result = await findUserByEmail(email);
       if (result) {
-        return res
+        res
           .status(200)
           .json({ message: '이미 존재하는 이메일입니다.', data: false });
+        return;
       } else {
-        return res
+        res
           .status(200)
           .json({ message: '사용 가능한 이메일입니다.', data: true });
+        return;
       }
     } catch (err) {
       if ((err as Error).message === BAD_REQUEST) {
-        return res.status(400).json({ message: BAD_REQUEST });
+        res.status(400).json({ message: BAD_REQUEST });
+        return;
       } else {
         res.json({
           error: (err as Error).message || (err as Error).toString(),
@@ -237,9 +242,11 @@ export default {
       const userId = (req.user as { id: string }).id;
 
       const studies = await studyService.getMyStudy(userId);
-      return res.status(200).json(studies);
+      res.status(200).json(studies);
+      return;
     } catch (e) {
-      return res.status(500).json({ message: (e as Error).message });
+      res.status(500).json({ message: (e as Error).message });
+      return;
     }
   },
 };
