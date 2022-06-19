@@ -43,7 +43,7 @@ export default {
         signupMailContent(id, token)
       );
 
-      res.status(201).json({ message, id });
+      return res.status(201).json({ message, id });
     } catch (e) {
       res
         .status(400)
@@ -72,13 +72,13 @@ export default {
         );
       }
 
-      res.json({ message: OK });
+      return res.json({ message: OK });
     } catch (e) {
       const err = e as Error;
       if (err.message === BAD_REQUEST) {
-        res.status(400).json({ message: BAD_REQUEST });
+        return res.status(400).json({ message: BAD_REQUEST });
       } else if (err.message === NOT_FOUND) {
-        res.status(404).json({ message: NOT_FOUND });
+        return res.status(404).json({ message: NOT_FOUND });
       }
     }
   },
@@ -96,15 +96,15 @@ export default {
       if (!user) throw new Error(NOT_FOUND);
 
       await updatePasswordById(user.id, newPassword);
-      res.json({ message: OK });
+      return res.json({ message: OK });
     } catch (e) {
       const err = e as Error;
       if (err.message === BAD_REQUEST) {
-        res.status(400).json({ message: BAD_REQUEST });
+        return res.status(400).json({ message: BAD_REQUEST });
       } else if (err.message === NOT_FOUND) {
-        res.status(404).json({ message: NOT_FOUND });
+        return res.status(404).json({ message: NOT_FOUND });
       } else {
-        res.status(500).json({ message: 'error' });
+        return res.status(500).json({ message: 'error' });
       }
     }
   },
@@ -117,9 +117,9 @@ export default {
       else return res.json({ message: '회원정보 수정 성공' });
     } catch (e) {
       if ((e as Error).message === NOT_FOUND) {
-        res.status(404).json({ message: '일치하는 id값 없음' });
+        return res.status(404).json({ message: '일치하는 id값 없음' });
       } else {
-        res.status(400).json({ message: 'request is not valid' });
+        return res.status(400).json({ message: 'request is not valid' });
       }
     }
   },
@@ -145,12 +145,12 @@ export default {
         sameSite: 'none',
         secure: true,
       });
-      res.json({ message: '회원 탈퇴 성공' });
+      return res.json({ message: '회원 탈퇴 성공' });
     } catch (e) {
       if ((e as Error).message === NOT_FOUND) {
-        res.status(404).json({ message: NOT_FOUND });
+        return res.status(404).json({ message: NOT_FOUND });
       } else {
-        res.status(400).json({ message: '회원 탈퇴 실패' });
+        return res.status(400).json({ message: '회원 탈퇴 실패' });
       }
     }
   },
@@ -175,11 +175,11 @@ export default {
         });
     } catch (e) {
       if ((e as Error).message === IS_LOGOUT) {
-        res.status(401).json({ message: IS_LOGOUT });
+        return res.status(401).json({ message: IS_LOGOUT });
       } else if ((e as Error).message === NOT_FOUND) {
-        res.status(404).json({ message: NOT_FOUND });
+        return res.status(404).json({ message: NOT_FOUND });
       } else {
-        res.status(500).json({ message: '회원 탈퇴 실패' });
+        return res.status(500).json({ message: '회원 탈퇴 실패' });
       }
     }
   },
@@ -199,9 +199,11 @@ export default {
         isOpen: item.IS_OPEN,
         dueDate: item.DUE_DATE,
       }));
-      res.json(response);
+      return res.json(response);
     } catch (e) {
-      res.status(500).json({ message: '내가 신청한 스터디 목록 조회 실패' });
+      return res
+        .status(500)
+        .json({ message: '내가 신청한 스터디 목록 조회 실패' });
     }
   },
   async getEmailDuplicate(req: Request, res: Response) {
@@ -226,7 +228,7 @@ export default {
       if ((err as Error).message === BAD_REQUEST) {
         return res.status(400).json({ message: BAD_REQUEST });
       } else {
-        res.json({
+        return res.json({
           error: (err as Error).message || (err as Error).toString(),
         });
       }

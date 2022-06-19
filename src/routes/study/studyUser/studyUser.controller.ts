@@ -23,7 +23,7 @@ export default {
       if (!study) throw new Error(NOT_FOUND);
 
       const result = await findAcceptedByStudyId(req.params.studyid);
-      res.json(
+      return res.json(
         result.map((record: Record<string, string | boolean>) => ({
           studyId: record.STUDY_ID,
           userId: record.USER_ID,
@@ -35,9 +35,9 @@ export default {
     } catch (e) {
       const err = e as Error;
       if (err.message === NOT_FOUND) {
-        res.status(404).json({ message: NOT_FOUND });
+        return res.status(404).json({ message: NOT_FOUND });
       } else {
-        res.status(500).json({ message: 'error' });
+        return res.status(500).json({ message: 'error' });
       }
     }
   },
@@ -60,7 +60,7 @@ export default {
       const result = await findNotAcceptedApplicantsByStudyId(
         req.params.studyid
       );
-      res.json(
+      return res.json(
         result.map((record: Record<string, string | boolean>) => ({
           studyId: record.STUDY_ID,
           userId: record.USER_ID,
@@ -73,11 +73,11 @@ export default {
     } catch (e) {
       const err = e as Error;
       if (err.message === FORBIDDEN) {
-        res.status(403).json({ message: FORBIDDEN });
+        return res.status(403).json({ message: FORBIDDEN });
       } else if (err.message === NOT_FOUND) {
-        res.status(404).json({ message: NOT_FOUND });
+        return res.status(404).json({ message: NOT_FOUND });
       } else {
-        res.status(500).json({ message: 'error ' });
+        return res.status(500).json({ message: 'error ' });
       }
     }
   },
@@ -99,8 +99,7 @@ export default {
           tempBio,
         });
       } catch (err) {
-        res.status(404).json({ message: NOT_FOUND });
-        return;
+        return res.status(404).json({ message: NOT_FOUND });
       }
 
       const study = await studyService.findStudyById(studyid);
@@ -118,15 +117,15 @@ export default {
         });
       }
 
-      res.status(201).json({ message: OK });
+      return res.status(201).json({ message: OK });
     } catch (e) {
       if ((e as Error).message === BAD_REQUEST) {
-        res.status(400).json({ message: BAD_REQUEST });
+        return res.status(400).json({ message: BAD_REQUEST });
       } else if ((e as Error).message === NOT_FOUND) {
-        res.status(404).json({ message: NOT_FOUND });
+        return res.status(404).json({ message: NOT_FOUND });
       } else {
         console.log((e as Error).toString());
-        res.status(500).json({ message: 'error' });
+        return res.status(500).json({ message: 'error' });
       }
     }
   },
@@ -170,17 +169,17 @@ export default {
         }
       }
 
-      res.json({ message: OK });
+      return res.json({ message: OK });
     } catch (e) {
       const err = e as Error;
       if (err.message === BAD_REQUEST) {
-        res.status(400).json({ message: BAD_REQUEST });
+        return res.status(400).json({ message: BAD_REQUEST });
       } else if (err.message === FORBIDDEN) {
-        res.status(403).json({ message: FORBIDDEN });
+        return res.status(403).json({ message: FORBIDDEN });
       } else if (err.message === NOT_FOUND) {
-        res.status(404).json({ message: NOT_FOUND });
+        return res.status(404).json({ message: NOT_FOUND });
       } else {
-        res.status(500).json({ message: 'error' });
+        return res.status(500).json({ message: 'error' });
       }
     }
   },
@@ -197,15 +196,15 @@ export default {
       const result = await updateUserTempBio(studyid, userId, tempBio);
       if (result.affected === 0) throw new Error(NOT_FOUND);
 
-      res.json({ message: '참가신청 현황 수정 성공 ' });
+      return res.json({ message: '참가신청 현황 수정 성공 ' });
     } catch (e) {
       const err = e as Error;
       if (err.message === BAD_REQUEST) {
-        res.status(400).json({ message: BAD_REQUEST });
+        return res.status(400).json({ message: BAD_REQUEST });
       } else if (err.message === NOT_FOUND) {
-        res.status(404).json({ message: NOT_FOUND });
+        return res.status(404).json({ message: NOT_FOUND });
       } else {
-        res.status(500).json({ message: 'error' });
+        return res.status(500).json({ message: 'error' });
       }
     }
   },
@@ -235,7 +234,7 @@ export default {
       }
 
       await studyService.decreaseMemberCount(studyid);
-      res.json({ message: OK });
+      return res.json({ message: OK });
 
       /* 호스트가 참가신청 취소해버린 경우 */
       if (process.env.NODE_ENV !== 'test') {
@@ -252,13 +251,13 @@ export default {
     } catch (e) {
       const err = e as Error;
       if (err.message === BAD_REQUEST) {
-        res.status(400).json({ message: BAD_REQUEST });
+        return res.status(400).json({ message: BAD_REQUEST });
       } else if (err.message === FORBIDDEN) {
-        res.status(403).json({ message: FORBIDDEN });
+        return res.status(403).json({ message: FORBIDDEN });
       } else if (err.message === NOT_FOUND) {
-        res.status(404).json({ message: NOT_FOUND });
+        return res.status(404).json({ message: NOT_FOUND });
       } else {
-        res.status(500).json({ message: 'error' });
+        return res.status(500).json({ message: 'error' });
       }
     }
   },
