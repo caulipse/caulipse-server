@@ -17,7 +17,8 @@
     "pm2:start": "pm2 start dist/src/index.js --name \"caulipse\"",
     "pm2:restart": "pm2 restart caulipse",
     "pm2:stop": "pm2 stop caulipse",
-    "mock:gen": "ts-node scripts/mock-gen.ts"
+    "mock:gen": "ts-node scripts/mock-gen.ts",
+    "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js"
   },
   "dependencies": {
     "bcrypt": "^5.0.1",
