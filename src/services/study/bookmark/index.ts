@@ -20,11 +20,16 @@ const registerBookmark = async (bookmarks: Study[], user: UserProfile) => {
 
 // 북마크 여부
 const checkBookmarked = async (userId: string, studyId: string) => {
+  // return await getRepository(Study)
+  //   .createQueryBuilder('study')
+  //   .leftJoin('study.bookmarks', 'UserProfile')
+  //   .where('study.id = :studyId', { studyId })
+  //   .where('UserProfile.USER_ID = :userId', { userId })
+  //   .getOne();
   return await getRepository(Study)
-    .createQueryBuilder('study')
-    .leftJoin('study.bookmarks', 'UserProfile')
-    .where('study.id = :studyId', { studyId })
-    .where('UserProfile.USER_ID = :userId', { userId })
+    .createQueryBuilder()
+    .where('STUDY_ID = :id', { id: studyId })
+    .where('BOOKMARK = :userId', { id: userId })
     .getOne();
 };
 

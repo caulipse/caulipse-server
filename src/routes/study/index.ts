@@ -11,7 +11,7 @@ router.get('/', controller.getAllStudy);
 router.post('/', checkToken, controller.createStudy);
 
 router.get('/search', controller.searchStudy);
-router.get('/:studyid/bookmark', controller.checkStudyBookmarked);
+router.get('/:studyid/bookmark', checkToken, controller.checkStudyBookmarked);
 router.get('/:studyid/detail', controller.getStudybyIdWithLogIn);
 router.get('/:studyid', controller.getStudybyId);
 router.patch('/:studyid', checkToken, controller.updateStudy);

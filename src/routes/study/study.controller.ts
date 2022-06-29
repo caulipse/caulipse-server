@@ -282,10 +282,12 @@ const checkStudyBookmarked = async (req: Request, res: Response) => {
     const studyId = req.params.studyid;
 
     const isBookmarked = await bookmarkService.checkBookmarked(userId, studyId);
-    res.json(isBookmarked);
+    const result = await bookmarkService.checkBookmarked(userId, studyId);
+    res.json({ isBookmarked: !!isBookmarked, result: result });
   } catch (e) {
     if ((e as Error).message === NOT_FOUND)
       res.status(404).json({ message: NOT_FOUND });
+    else res.status(500).json({ message: (e as Error).message });
   }
 };
 
