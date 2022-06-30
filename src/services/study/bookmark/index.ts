@@ -24,7 +24,7 @@ const checkBookmarked = async (userId: string, studyId: string) => {
     .createQueryBuilder('study')
     .leftJoin('study.bookmarks', 'UserProfile')
     .where('study.id = :studyId', { studyId })
-    .where('UserProfile.USER_ID = :userId', { userId })
+    .andWhere('UserProfile.USER_ID = :userId', { userId })
     .getOne();
 };
 
