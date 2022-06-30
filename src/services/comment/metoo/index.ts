@@ -33,7 +33,7 @@ const checkMetoo = async (userId: string, commentId: string) => {
     .select(['comment.id', 'comment.USER_ID'])
     .leftJoin('comment.metooComment', 'UserProfile')
     .where('comment.id = :commentId', { commentId })
-    .where('UserProfile.USER_ID = :userId', { userId })
+    .andWhere('UserProfile.USER_ID = :userId', { userId })
     .getOne();
 };
 

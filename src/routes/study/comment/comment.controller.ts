@@ -1,22 +1,12 @@
-import { NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import { Request, Response } from 'express';
 import commentService from '../../../services/comment';
 import { createStudyNoti, NotiTypeEnum } from '../../../services/notification';
 import studyService from '../../../services/study';
 import { temp_findUserProfileById } from '../../../services/user/profile';
 import metooService from '../../../services/comment/metoo';
-import { generateToken } from '../../../middlewares/auth';
 import Comment from '../../../entity/CommentEntity';
-import { getRepository } from 'typeorm';
-import User from '../../../entity/UserEntity';
-import { logoutUserById } from '../../../services/user';
 
-const getAllCommentWithLogIn = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const FORBIDDEN = '접근 권한이 없습니다';
+const getAllCommentWithLogIn = async (req: Request, res: Response) => {
   const NOT_FOUND = '데이터베이스에 일치하는 요청값이 없습니다';
 
   try {
@@ -25,85 +15,24 @@ const getAllCommentWithLogIn = async (
     const comments = await commentService.getAllByStudy(studyid);
     if (!study || !comments) throw new Error(NOT_FOUND);
 
-    const { accessToken, refreshToken } = req.cookies;
-    let decoded;
+    const userId = (req.user as { id: string }).id;
     const result: Array<Comment & { metoo: boolean }> = [];
 
-    if (!accessToken && !refreshToken) {
-      next();
-    } else if (!accessToken && refreshToken) {
-      try {
-        decoded = jwt.verify(
-          refreshToken,
-          process.env.SIGNUP_TOKEN_SECRET as string
-        ) as { id: string; email: string };
-
-        const user = await getRepository(User).findOne({ id: decoded.id });
-        if (user?.id !== decoded.id) throw new Error(FORBIDDEN);
-        if (user?.isLogout) throw new Error(FORBIDDEN);
-
-        const newAccessToken = generateToken({ id: decoded.id });
-        req.user = { id: decoded.id };
-
-        for (const comment of comments) {
-          if (await metooService.checkMetoo(decoded.id, comment.id)) {
-            result.push({
-              ...comment,
-              metoo: true,
-            });
-          } else {
-            result.push({
-              ...comment,
-              metoo: false,
-            });
-          }
-        }
-
-        return res
-          .cookie('accessToken', newAccessToken, {
-            expires: new Date(Date.now() + 3 * 3600 * 1000),
-            domain: 'caustudy.com',
-            sameSite: 'none',
-            secure: true,
-          })
-          .status(200)
-          .json(result);
-      } catch (e) {
-        if ((e as Error).message === FORBIDDEN) {
-          return res.status(403).json({ message: (e as Error).message });
-        } else {
-          if (decoded?.id) await logoutUserById(decoded.id);
-          next();
-        }
-      }
-    } else {
-      try {
-        decoded = jwt.verify(
-          accessToken,
-          process.env.SIGNUP_TOKEN_SECRET as string
-        ) as { id: string };
-        req.user = { id: decoded.id };
-
-        for (const comment of comments) {
-          if (await metooService.checkMetoo(decoded.id, comment.id)) {
-            result.push({
-              ...comment,
-              metoo: true,
-            });
-          } else {
-            result.push({
-              ...comment,
-              metoo: false,
-            });
-          }
-        }
-
-        return res.status(200).json(result);
-      } catch (e) {
-        if (decoded?.id) await logoutUserById(decoded.id);
-        next();
+    for (const comment of comments) {
+      if (await metooService.checkMetoo(userId, comment.id)) {
+        result.push({
+          ...comment,
+          metoo: true,
+        });
+      } else {
+        result.push({
+          ...comment,
+          metoo: false,
+        });
       }
     }
+
+    return res.status(200).json(result);
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
       return res.status(404).json({ message: (e as Error).message });
@@ -291,6 +220,41 @@ export default {
  *      responses:
  *        200:
  *          description: "문의글 목록 조회 성공. message와 함께 문의글 목록({문의글, 스터디, 유저})을 반환함"
+ *          schema:
+ *            type: array
+ *            items:
+ *              allOf:
+ *                - $ref: "#/definitions/Comment"
+ *                - type: object
+ *                  properties:
+ *                    metoo:
+ *                      type: boolean
+ *                      description: "유저가 각 문의글에 대하여 나도 궁금해요를 등록한 상태인지 아닌지에 대한 여부 (로그인 상태가 아니므로 전부 false를 반환함)"
+ *        404:
+ *          description: "전달한 studyid가 데이터베이스에 없는 경우입니다"
+ *          schema:
+ *            type: object
+ *            properties:
+ *              message:
+ *                type: string
+ *                example: "일치하는 studyid가 없음"
+ *
+ * /api/study/{studyid}/comment/my:
+ *    get:
+ *      summary: "로그인 상태에서의 문의글 목록 조회"
+ *      description: "로그인 상태일 때, 문의글 목록과 함께 나도 궁금해요 등록 여부를 함께 응답하는 엔드포인트입니다."
+ *      tags:
+ *      - study/comment
+ *      parameters:
+ *      - name: "studyid"
+ *        in: "path"
+ *        description: "문의글 목록을 조회할 스터디 id"
+ *        required: true
+ *        type: string
+ *        format: uuid
+ *      responses:
+ *        200:
+ *          description: "문의글 목록 조회 성공"
  *          schema:
  *            type: array
  *            items:

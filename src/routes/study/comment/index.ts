@@ -5,7 +5,8 @@ import { checkToken } from '../../../middlewares/auth';
 
 const router = Router({ mergeParams: true });
 
-router.get('/', controller.getAllCommentWithLogIn, controller.getAllComment);
+router.get('/my', checkToken, controller.getAllCommentWithLogIn);
+router.get('/', controller.getAllComment);
 router.post('/', checkToken, controller.createComment);
 
 router.patch('/:commentid', checkToken, controller.updateComment);
