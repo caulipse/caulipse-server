@@ -667,6 +667,53 @@ export default {
  *                type: string
  *                example: "로그인 필요"
  *
+ *  /api/study/{studyid}/my:
+ *    get:
+ *      summary: "스터디 아이디에 해당하는 스터디 정보 조회(로그인 했을시)"
+ *      description: "스터디 상세페이지에서 각 스터디 아이디에 해당하는 모든 상세 정보들을 조회할 엔드포인트입니다, 자신의 스터디 북마크 여부와 참가신청 여뷰를 함께 응답합니다."
+ *      tags:
+ *      - "study"
+ *      parameters:
+ *      - name: "studyid"
+ *        in: "path"
+ *        description: "정보를 조회할 스터디 id"
+ *        required: true
+ *        type: string
+ *        format: uuid
+ *      responses:
+ *        200:
+ *          description: "올바른 요청, 스터디 정보를 반환합니다"
+ *          schema:
+ *            allOf:
+ *            - $ref: "#/definitions/Study"
+ *            - type: object
+ *              properties:
+ *                bookmarked:
+ *                  type: boolean
+ *                  description: "유저가 해당 스터디에 대하여 북마크를 추가한 상태인지 아닌지에 대한 여부"
+ *                applied:
+ *                  type: boolean
+ *                  description: "유저가 해당 스터디에 대하여 참가 신청을 한 상태인지 아닌지에 대한 여부"
+ *                isLogIn:
+ *                  type: boolean
+ *                  description: "유저가 현재 로그인 상태인지 아닌지에 대한 여부"
+ *        403:
+ *          description: "접근 권한이 없는 경우입니다"
+ *          schema:
+ *            type: object
+ *            properties:
+ *              message:
+ *                type: string
+ *                example: "접근 권한이 없습니다"
+ *        404:
+ *          description: "전달한 studyid가 데이터베이스에 없는 경우입니다"
+ *          schema:
+ *            type: object
+ *            properties:
+ *              message:
+ *                type: string
+ *                example: "데이터베이스에 일치하는 요청값이 없습니다"
+ *
  *  /api/study/{studyid}:
  *    get:
  *      summary: "스터디 아이디에 해당하는 스터디 정보 조회"
