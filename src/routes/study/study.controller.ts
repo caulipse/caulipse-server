@@ -17,10 +17,6 @@ import {
 import { temp_findUserProfileById } from '../../services/user/profile';
 import { orderByEnum } from '../../types/study.dto';
 import bookmarkService from '../../services/study/bookmark';
-import { getRepository } from 'typeorm';
-import User from '../../entity/UserEntity';
-import { generateToken } from '../../middlewares/auth';
-import { logoutUserById } from '../../services/user';
 
 export const schedules: { [key: string]: cron.ScheduledTask } = {};
 export const closedschedules: string[] = [];
@@ -221,12 +217,7 @@ const createStudy = async (req: Request, res: Response) => {
   }
 };
 
-const getStudybyIdWithLogIn = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const FORBIDDEN = '접근 권한이 없습니다';
+const getStudybyIdWithLogIn = async (req: Request, res: Response) => {
   const NOT_FOUND = '데이터베이스에 일치하는 요청값이 없습니다';
 
   try {
@@ -234,80 +225,18 @@ const getStudybyIdWithLogIn = async (
     const study = await studyService.findStudyById(studyid);
     if (!study) throw new Error(NOT_FOUND);
 
-    const { accessToken, refreshToken } = req.cookies;
-    let decoded;
+    const userId = (req.user as { id: string }).id;
 
-    if (!accessToken && !refreshToken) {
-      next();
-    } else if (!accessToken && refreshToken) {
-      try {
-        decoded = jwt.verify(
-          refreshToken,
-          process.env.SIGNUP_TOKEN_SECRET as string
-        ) as { id: string; email: string };
+    const bookmarkFlag = await bookmarkService.checkBookmarked(userId, studyid);
+    const appliedFlag = await checkApplied(studyid, userId);
+    await studyService.updateStudyViews(study);
 
-        const user = await getRepository(User).findOne({ id: decoded.id });
-        if (user?.id !== decoded.id) throw new Error(FORBIDDEN);
-        if (user?.isLogout) throw new Error(FORBIDDEN);
-
-        const newAccessToken = generateToken({ id: decoded.id });
-        req.user = { id: decoded.id };
-
-        const bookmarkFlag = await bookmarkService.checkBookmarked(
-          decoded.id,
-          studyid
-        );
-        const appliedFlag = await checkApplied(studyid, decoded.id);
-        await studyService.updateStudyViews(study);
-
-        return res
-          .cookie('accessToken', newAccessToken, {
-            expires: new Date(Date.now() + 3 * 3600 * 1000),
-            domain: 'caustudy.com',
-            sameSite: 'none',
-            secure: true,
-          })
-          .status(200)
-          .json({
-            ...study,
-            bookmarked: bookmarkFlag ? true : false,
-            applied: appliedFlag ? true : false,
-            isLogIn: true,
-          });
-      } catch (e) {
-        if ((e as Error).message === FORBIDDEN) {
-          return res.status(403).json({ message: (e as Error).message });
-        } else {
-          if (decoded?.id) await logoutUserById(decoded.id);
-          next();
-        }
-      }
-    } else {
-      try {
-        decoded = jwt.verify(
-          accessToken,
-          process.env.SIGNUP_TOKEN_SECRET as string
-        ) as { id: string };
-        req.user = { id: decoded.id };
-
-        const bookmarkFlag = await bookmarkService.checkBookmarked(
-          decoded.id,
-          studyid
-        );
-        const appliedFlag = await checkApplied(studyid, decoded.id);
-        await studyService.updateStudyViews(study);
-
-        return res.status(200).json({
-          ...study,
-          bookmarked: bookmarkFlag ? true : false,
-          applied: appliedFlag ? true : false,
-          isLogIn: true,
-        });
-      } catch (e) {
-        if (decoded?.id) await logoutUserById(decoded.id);
-        next();
-      }
-    }
+    return res.status(200).json({
+      ...study,
+      bookmarked: bookmarkFlag ? true : false,
+      applied: appliedFlag ? true : false,
+      isLogIn: true,
+    });
   } catch (e) {
     if ((e as Error).message === NOT_FOUND) {
       return res.status(404).json({ message: NOT_FOUND });
