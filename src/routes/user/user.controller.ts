@@ -8,16 +8,19 @@ import {
   findUserById,
   findUserByEmail,
   updatePasswordById,
-  findUserByToken,
   updateTokenById,
 } from '../../services/user';
 import { sendMail } from '../../services/mail';
 import { makeSignUpToken } from '../../utils/auth';
 import { validateCAU } from '../../utils/mail';
-import { findAllIfParticipatedByUserId } from '../../services/studyUser';
+import {
+  findAllIfParticipatedByUserId,
+  findAllStudyUserByStudyId,
+} from '../../services/studyUser';
 import { passwordResetContent, signupMailContent } from '../../utils/mail/html';
 import studyService from '../../services/study';
 import { deleteUserProfileByUserId } from '../../services/user/profile';
+import { createStudyNoti, NotiTypeEnum } from '../../services/notification';
 
 export default {
   async saveUser(req: Request, res: Response) {
@@ -128,6 +131,27 @@ export default {
 
     try {
       const { id } = req.user as { id: string };
+
+      if (process.env.NODE_ENV !== 'test') {
+        const studies = await studyService.getMyStudy(id);
+        if (studies.length !== 0) {
+          for (const study of studies) {
+            const users = await findAllStudyUserByStudyId(study.id);
+            if (users.length !== 0) {
+              for (const user of users) {
+                await createStudyNoti({
+                  id: study.id,
+                  userId: user.USER_ID,
+                  title: '모집 취소',
+                  about: '스터디가 삭제되었어요:(',
+                  type: NotiTypeEnum.DELETED,
+                });
+              }
+            }
+          }
+        }
+      }
+
       const profileDeleteResult = await deleteUserProfileByUserId(id);
       const userDeleteResult = await deleteUserById(id);
       if (profileDeleteResult.affected === 0 || userDeleteResult.affected === 0)

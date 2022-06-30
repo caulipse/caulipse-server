@@ -25,9 +25,9 @@ import { logoutUserById } from '../../services/user';
 export const schedules: { [key: string]: cron.ScheduledTask } = {};
 export const closedschedules: string[] = [];
 
-/* 매일 자정 직후 */
+/* 매일 자정 5분 후 실행 */
 if (process.env.NODE_ENV !== 'test') {
-  cron.schedule('30 0 * * *', () => {
+  cron.schedule('5 0 * * *', () => {
     closedschedules.forEach((value) => {
       schedules[`${value}`].stop();
       delete schedules[`${value}`];
@@ -45,7 +45,7 @@ const scheduleJob = async (study: Study) => {
         id: study.id,
         userId: member.USER_ID,
         title: '모집 종료',
-        about: `모집이 종료되었어요. ${member.USER_NAME}님의 스터디를 응원합니다!`,
+        about: `스터디의 모집이 종료되었습니다.`,
         type: NotiTypeEnum.CLOSED,
       });
     }
@@ -57,7 +57,7 @@ const scheduleJob = async (study: Study) => {
         id: study.id,
         userId: user.USER_ID,
         title: '모집 종료',
-        about: '스터디의 모집이 마감되었어요.',
+        about: '스터디의 모집이 종료되었습니다.',
         type: NotiTypeEnum.CLOSED,
       });
     }

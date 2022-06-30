@@ -176,6 +176,13 @@ const createComment = async (req: Request, res: Response) => {
           about: '작성하신 문의글에 답글이 달렸어요.',
           type: NotiTypeEnum.NEW_REPLY,
         });
+        await createStudyNoti({
+          id: studyid,
+          userId: study.HOST_ID,
+          title: '답글',
+          about: '작성하신 문의글에 답글이 달렸어요.',
+          type: NotiTypeEnum.NEW_REPLY,
+        });
       } else {
         await createStudyNoti({
           id: studyid,

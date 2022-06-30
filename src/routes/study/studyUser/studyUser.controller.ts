@@ -84,7 +84,7 @@ export default {
   async joinStudy(req: Request, res: Response) {
     const OK = '참가신청 성공';
     const BAD_REQUEST = '잘못된 요창';
-    const NOT_FOUND = '일치하는 study id 가 없음';
+    const NOT_FOUND = '일치하는 id 가 없음';
 
     try {
       const { tempBio } = req.body;
@@ -109,6 +109,9 @@ export default {
       }
       if (process.env.NODE_ENV !== 'test') {
         const profile = await findUserProfileById(userId);
+        if (!profile.length && !profile[0].userProfile_USER_NAME)
+          throw new Error(NOT_FOUND);
+
         await createStudyNoti({
           id: studyid,
           userId: study.HOST_ID,
