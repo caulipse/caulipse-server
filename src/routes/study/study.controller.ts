@@ -667,7 +667,7 @@ export default {
  *                type: string
  *                example: "로그인 필요"
  *
- *  /api/study/{studyid}/my:
+ *  /api/study/{studyid}/login:
  *    get:
  *      summary: "스터디 아이디에 해당하는 스터디 정보 조회(로그인 했을시)"
  *      description: "스터디 상세페이지에서 각 스터디 아이디에 해당하는 모든 상세 정보들을 조회할 엔드포인트입니다, 자신의 스터디 북마크 여부와 참가신청 여뷰를 함께 응답합니다."
