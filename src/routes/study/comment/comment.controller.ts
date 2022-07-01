@@ -263,7 +263,7 @@ export default {
  *                type: string
  *                example: "일치하는 studyid가 없음"
  *
- * /api/study/{studyid}/comment/login:
+ *  /api/study/{studyid}/comment/login:
  *    get:
  *      summary: "로그인 상태에서의 문의글 목록 조회"
  *      description: "로그인 상태일 때, 문의글 목록과 함께 나도 궁금해요 등록 여부를 함께 응답하는 엔드포인트입니다."
