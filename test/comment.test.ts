@@ -213,7 +213,7 @@ describe('GET /api/:studyid/comment - 댓글 O', () => {
 
   it('요청된 studyid에 해당하는 스터디의 모든 문의글 목록 조회 (로그인O)', async () => {
     const res = await request(app)
-      .get(`/api/study/${studyid}/comment`)
+      .get(`/api/study/${studyid}/comment/login`)
       .set('Cookie', cookies);
 
     expect(res.status).toBe(200);

@@ -374,7 +374,7 @@ describe('GET /api/study/:studyid', () => {
     await getRepository(StudyUser).save(studyUser);
 
     const res = await request(app)
-      .get(`/api/study/${studyid}`)
+      .get(`/api/study/${studyid}/login`)
       .set('Cookie', cookies);
 
     expect(res.status).toBe(200);

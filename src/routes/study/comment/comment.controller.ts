@@ -18,7 +18,7 @@ const getAllCommentWithLogIn = async (req: Request, res: Response) => {
     const userId = (req.user as { id: string }).id;
     const result: Array<Comment & { metoo: boolean }> = [];
 
-    for (const comment of comments) {
+    for await (const comment of comments) {
       if (await metooService.checkMetoo(userId, comment.id)) {
         result.push({
           ...comment,
@@ -53,12 +53,12 @@ const getAllComment = async (req: Request, res: Response) => {
     if (!study || !comments) throw new Error(NOT_FOUND);
 
     const result: Array<Comment & { metoo: boolean }> = [];
-    comments.forEach((comment) => {
+    for await (const comment of comments) {
       result.push({
         ...comment,
         metoo: false,
       });
-    });
+    }
 
     return res.status(200).json(result);
   } catch (e) {
