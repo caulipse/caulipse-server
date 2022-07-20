@@ -31,7 +31,7 @@ export interface studyDTO {
   location: LocationEnum[];
   capacity: number;
   categoryCode: number;
-  dueDate: string;
+  dueDate: Date;
 }
 
 export interface searchStudyDTO {

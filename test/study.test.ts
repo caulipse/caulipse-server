@@ -421,7 +421,6 @@ describe('PATCH /api/study/:studyid', () => {
   });
 
   it('body를 포함한 요청을 받으면 studyid에 해당하는 스터디 업데이트', async () => {
-    const date = new Date();
     const res = await request(app)
       .patch(`/api/study/${studyid}`)
       .set('Cookie', cookies)
@@ -431,7 +430,7 @@ describe('PATCH /api/study/:studyid', () => {
         weekday: [WeekDayEnum.WED, WeekDayEnum.THU],
         frequency: FrequencyEnum.MORE,
         location: [LocationEnum.LIBRARY, LocationEnum.NO_CONTACT],
-        dueDate: new Date(date.getTime() + 60 * 60 * 7),
+        dueDate: '2022-07-21',
       });
 
     expect(res.status).toBe(200);

@@ -334,7 +334,7 @@ const updateStudy = async (req: Request, res: Response) => {
         location: req.body.location ?? study.location,
         capacity: req.body.capacity ?? study.capacity,
         categoryCode: req.body.categoryCode ?? study.categoryCode,
-        dueDate: req.body.dueDate ?? study.dueDate,
+        dueDate: new Date(req.body.dueDate) ?? study.dueDate,
       },
       studyid
     );
